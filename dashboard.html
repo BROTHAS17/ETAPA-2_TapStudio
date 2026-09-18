@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - La Tiendita</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+    
+</head>
+
+<body>
+
+   <!-- NAVBAR -->
+<nav class="navbar">
+    <div class="nav-logo">
+        <img src="Tiendita.png" alt="Logo" class="logo-img">
+        La Tiendita
+    </div>
+
+    <!-- Botón hamburguesa -->
+    <button class="nav-toggle" id="navToggle">☰</button>
+
+    <ul class="nav-links" id="navLinks">
+        <li><a href="dashboard.html">Dashboard</a></li>
+        <li class="admin-only"><a href="usuarios.html">Usuarios</a></li>
+        <li><a href="ventas.html">Ventas</a></li>
+        <li><a href="catalogo.html">Catálogo</a></li>
+        <li class="admin-only"><a href="reportes.html">Reportes</a></li>
+    </ul>
+
+    <div class="nav-user">
+        <span id="userName"></span>
+        <button id="logoutBtn">Salir</button>
+    </div>
+</nav>
+
+
+    <!-- CONTENIDO -->
+    <main class="dashboard-container">
+
+        <h1 class="titulo">Tablero Principal</h1>
+
+        <section class="kpi-grid">
+
+            <div class="kpi-card verde">
+                <h3>Ventas del Día</h3>
+                <p id="kpiVentasDia">0</p>
+            </div>
+
+            <div class="kpi-card azul">
+                <h3>Transacciones</h3>
+                <p id="kpiTransacciones">0</p>
+            </div>
+
+            <div class="kpi-card dorado">
+                <h3>Productos en Catálogo</h3>
+                <p id="kpiProductos">0</p>
+            </div>
+
+            <div class="kpi-card rojo">
+                <h3>Stock Crítico</h3>
+                <p id="kpiStockCritico">0</p>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
