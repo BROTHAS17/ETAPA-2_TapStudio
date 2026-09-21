@@ -219,7 +219,7 @@
       return;
     }
  
-    infoStock.textContent = Existencias disponibles: ${producto.existencias};
+    infoStock.textContent = `Existencias disponibles: ${producto.existencias}`;
  
     const cantidadValida = cantidadEsEntera && cantidad >= 1;
     const total = cantidadValida ? producto.precio * cantidad : 0;
