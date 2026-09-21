@@ -191,7 +191,7 @@
     productosDisponibles.forEach((producto) => {
       const opcion = document.createElement("option");
       opcion.value = producto.id;
-      opcion.textContent = ${producto.nombre} — ${formatearMoneda(producto.precio)} (stock: ${producto.existencias});
+      option.textContent = `${producto.nombre} — ${formatearMoneda(producto.precio)} (stock: ${producto.existencias})`;
       selectProducto.appendChild(opcion);
     });
   }
