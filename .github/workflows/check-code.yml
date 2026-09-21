@@ -1,0 +1,32 @@
+name: Check all code
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check-javascript:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download the code
+        uses: actions/checkout@v4
+
+      - name: Check JavaScript syntax
+        shell: bash
+        run: |
+          found_js=false
+
+          while IFS= read -r -d '' file; do
+            found_js=true
+            echo "Checking $file"
+            node --check "$file"
+          done < <(find . -name "*.js" -not -path "./.git/*" -print0)
+
+          if [ "$found_js" = false ]; then
+            echo "No JavaScript files found."
+          fi
