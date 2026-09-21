@@ -1,0 +1,60 @@
+/* Fondo general */
+body {
+    background: linear-gradient(135deg, #2563EB, #7C3AED);
+    min-height: 100vh;
+}
+
+/* Tarjeta */
+.card {
+    border: none;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+/* Encabezado */
+.encabezado-login {
+    background: linear-gradient(135deg, #5B21B6, #7C3AED);
+}
+
+/* Título */
+.titulo-login {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* Botón */
+.btn-primary {
+    padding: 10px;
+    font-weight: 600;
+    background-color: #2563EB;
+    border-color: #2563EB;
+}
+
+/* Efecto al pasar el mouse */
+.btn-primary:hover {
+    background-color: #1D4ED8;
+    border-color: #1D4ED8;
+}
+
+/* Campos */
+.form-control {
+    border-radius: 8px;
+}
+
+/* Efecto al enfocar */
+.form-control:focus {
+    border-color: #2563EB;
+    box-shadow: 0 0 8px rgba(37, 99, 235, 0.5);
+}
+
+/* Encabezado redondeado */
+.card-header {
+    padding: 20px;
+}
+
+.alert-sesion {
+    background-color: #EDE9FE;
+    border-color: #C4B5FD;
+    color: #5B21B6;
+}

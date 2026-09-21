@@ -1,35 +1,66 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Ventas - La Tiendita</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
-    
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Punto de Venta | Tiendita</title>
+<style>
+  :root { --azul:#1d4ed8; --azul-osc:#1e3a8a; --verde:#16a34a; --rojo:#dc2626; --gris-bg:#f3f4f6; --gris-borde:#d1d5db; --gris-texto:#374151; --blanco:#fff; --radio:10px; --sombra:0 2px 10px rgba(0,0,0,.08); }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Segoe UI",Roboto,Arial,sans-serif; background:var(--gris-bg); color:var(--gris-texto); }
+  header.top { background:var(--azul-osc); color:var(--blanco); padding:18px 24px; }
+  header.top h1 { margin:0; font-size:1.3rem; }
+  header.top p { margin:4px 0 0; font-size:.85rem; opacity:.85; }
+  main { max-width:960px; margin:28px auto; padding:0 16px; display:grid; grid-template-columns:1.1fr .9fr; gap:20px; }
+  @media (max-width:760px) { main { grid-template-columns:1fr; } }
+  .tarjeta { background:var(--blanco); border-radius:var(--radio); box-shadow:var(--sombra); padding:22px; }
+  .tarjeta h2 { margin-top:0; font-size:1.05rem; color:var(--azul-osc); border-bottom:1px solid var(--gris-borde); padding-bottom:10px; }
+  label { display:block; font-weight:600; font-size:.85rem; margin:14px 0 6px; }
+  select,input[type="number"] { width:100%; padding:10px 12px; font-size:1rem; border:1px solid var(--gris-borde); border-radius:8px; background:var(--blanco); }
+  .stock-info,.estado-carga { font-size:.8rem; color:#6b7280; margin-top:4px; }
+  .resumen-fila { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px dashed var(--gris-borde); font-size:.95rem; }
+  .resumen-total { display:flex; justify-content:space-between; align-items:baseline; margin-top:14px; padding-top:14px; border-top:2px solid var(--azul-osc); }
+  .resumen-total span:first-child { font-weight:600; color:var(--azul-osc); }
+  .resumen-total span:last-child { font-size:1.9rem; font-weight:700; color:var(--azul-osc); }
+  .advertencia,.mensaje { display:none; margin-top:14px; padding:10px 14px; border-radius:8px; font-size:.88rem; font-weight:600; }
+  .advertencia.visible,.mensaje.exito,.mensaje.error { display:block; }
+  .advertencia { background:#fef2f2; border:1px solid var(--rojo); color:var(--rojo); }
+  .mensaje.exito { background:#f0fdf4; border:1px solid var(--verde); color:var(--verde); }
+  .mensaje.error { background:#fef2f2; border:1px solid var(--rojo); color:var(--rojo); }
+  button#btnConfirmarVenta { width:100%; margin-top:18px; padding:14px; font-size:1rem; font-weight:700; color:var(--blanco); background:var(--verde); border:none; border-radius:8px; cursor:pointer; }
+  button#btnConfirmarVenta:disabled { background:#9ca3af; cursor:not-allowed; }
+  .vendedor { font-size:.8rem; color:#6b7280; margin-top:14px; text-align:right; }
+</style>
 </head>
-
 <body>
-
-   <!-- NAVBAR -->
-<nav class="navbar">
-    <div class="nav-logo">
-        <img src="Tiendita.png" alt="Logo" class="logo-img">
-        La Tiendita
-    </div>
-
-    <!-- Botón hamburguesa -->
-    <button class="nav-toggle" id="navToggle">☰</button>
-
-    <ul class="nav-links" id="navLinks">
-        <li><a href="dashboard.html">Dashboard</a></li>
-        <li class="admin-only"><a href="usuarios.html">Usuarios</a></li>
-        <li><a href="ventas.html">Ventas</a></li>
-        <li><a href="catalogo.html">Catálogo</a></li>
-        <li class="admin-only"><a href="reportes.html">Reportes</a></li>
-    </ul>
-
-    <div class="nav-user">
-        <span id="userName"></span>
-        <button id="logoutBtn">Salir</button>
-    </div>
-</nav>
+<header class="top">
+  <h1>Punto de Venta</h1>
+  <p><a href="MiTiendita/dashboard.html" style="color:white">Volver al dashboard</a></p>
+</header>
+<main>
+  <section class="tarjeta">
+    <h2>Registrar venta</h2>
+    <form id="formVenta" novalidate>
+      <label for="selectProducto">Producto</label>
+      <select id="selectProducto" required><option value="" disabled selected>Cargando productos…</option></select>
+      <div class="stock-info" id="infoStock">Existencias disponibles: —</div>
+      <label for="inputCantidad">Cantidad</label>
+      <input type="number" id="inputCantidad" min="1" step="1" value="1" inputmode="numeric" />
+      <div class="advertencia" id="advertenciaStock"></div>
+      <button type="submit" id="btnConfirmarVenta" disabled>Confirmar Venta</button>
+      <div class="mensaje" id="mensajeResultado"></div>
+      <div class="estado-carga" id="estadoCarga"></div>
+    </form>
+  </section>
+  <section class="tarjeta">
+    <h2>Resumen de cobro</h2>
+    <div class="resumen-fila"><span>Producto</span><span id="resumenProducto">—</span></div>
+    <div class="resumen-fila"><span>Precio unitario</span><span id="resumenPrecio">$0.00</span></div>
+    <div class="resumen-fila"><span>Cantidad</span><span id="resumenCantidad">0</span></div>
+    <div class="resumen-total"><span>Total a pagar</span><span id="resumenTotal">$0.00</span></div>
+    <div class="vendedor">Vendedor: <strong id="nombreVendedor">—</strong></div>
+  </section>
+</main>
+<script src="ventas.js"></script>
+</body>
+</html>
