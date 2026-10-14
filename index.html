@@ -7,7 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20261014-integration">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=20261014-bootstrap">
 </head>
 <body>
 
@@ -86,20 +87,20 @@
         </div>
         <form class="form-card" id="compraForm" novalidate>
           <h3>Nueva compra</h3>
-          <div class="form-grid">
-            <div class="field">
+          <div class="row g-3 mx-0">
+            <div class="field col-12 col-md-6 col-lg-3">
               <label for="compraProducto">Producto</label>
               <select id="compraProducto"></select>
             </div>
-            <div class="field">
+            <div class="field col-12 col-md-6 col-lg-3">
               <label for="compraCantidad">Cantidad</label>
               <input type="number" id="compraCantidad" min="1" step="1" value="1">
             </div>
-            <div class="field">
+            <div class="field col-12 col-md-6 col-lg-3">
               <label for="compraCosto">Costo unitario</label>
               <input type="number" id="compraCosto" min="0" step="0.01">
             </div>
-            <div class="field">
+            <div class="field col-12 col-md-6 col-lg-3">
               <label for="compraProveedor">Proveedor (opcional)</label>
               <input type="text" id="compraProveedor" placeholder="Distribuidora Central">
             </div>
@@ -125,16 +126,16 @@
         </div>
         <form class="form-card" id="ventaForm" novalidate>
           <h3>Nueva venta</h3>
-          <div class="form-grid">
-            <div class="field">
+          <div class="row g-3 mx-0">
+            <div class="field col-12 col-md-6 col-lg-4">
               <label for="ventaProducto">Producto</label>
               <select id="ventaProducto"></select>
             </div>
-            <div class="field">
+            <div class="field col-12 col-md-6 col-lg-4">
               <label for="ventaCantidad">Cantidad</label>
               <input type="number" id="ventaCantidad" min="1" step="1" value="1">
             </div>
-            <div class="field">
+            <div class="field col-12 col-md-6 col-lg-4">
               <label for="ventaPrecio">Precio unitario</label>
               <input type="number" id="ventaPrecio" min="0" step="0.01">
             </div>
@@ -207,32 +208,32 @@
 
 <!-- Modal producto -->
 <div class="modal-overlay hidden" id="productModalOverlay">
-  <div class="modal">
+  <div class="product-modal">
     <h3 id="productModalTitle">Nuevo producto</h3>
     <form id="productForm" novalidate>
-      <div class="form-grid" style="grid-template-columns:1fr 1fr;">
-        <div class="field" style="grid-column:1/-1;">
+      <div class="row g-3 mx-0">
+        <div class="field col-12">
           <label for="pNombre">Nombre</label>
           <input type="text" id="pNombre" placeholder="Coca-Cola 600ml">
         </div>
-        <div class="field" style="grid-column:1/-1;">
+        <div class="field col-12">
           <label for="pCategoria">Categoría</label>
           <input type="text" id="pCategoria" list="catList" placeholder="Bebidas">
           <datalist id="catList"></datalist>
         </div>
-        <div class="field">
+        <div class="field col-12 col-sm-6">
           <label for="pCosto">Costo</label>
           <input type="number" id="pCosto" min="0" step="0.01">
         </div>
-        <div class="field">
+        <div class="field col-12 col-sm-6">
           <label for="pPrecio">Precio de venta</label>
           <input type="number" id="pPrecio" min="0" step="0.01">
         </div>
-        <div class="field">
+        <div class="field col-12 col-sm-6">
           <label for="pStockMin">Stock mínimo</label>
           <input type="number" id="pStockMin" min="0" step="1">
         </div>
-        <div class="field" id="pStockInicialWrap">
+        <div class="field col-12 col-sm-6" id="pStockInicialWrap">
           <label for="pStockInicial">Stock inicial</label>
           <input type="number" id="pStockInicial" min="0" step="1" value="0">
         </div>
