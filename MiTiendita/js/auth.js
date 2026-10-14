@@ -138,7 +138,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
             // Redirigir al dashboard
-            window.location.href = "dashboard.html";
+            window.location.href = "../index.html";
 
 
         } else {
