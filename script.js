@@ -67,7 +67,7 @@
 
   /* ============ LÓGICA DE NEGOCIO CENTRAL (funciones puras) ============ */
   function findProduct(id){
-    for(var i=0;i<state.products.length;i++){ if(state.products[i].id === id) return state.products[i]; }
+    for(var i=0;i<state.products.length;i++){ if(String(state.products[i].id) === String(id)) return state.products[i]; }
     return null;
   }
 
@@ -414,7 +414,7 @@
     if(usingSharedDb){
       await db.doc('products/'+id).delete();
     } else {
-      state.products = state.products.filter(function(x){ return x.id !== id; });
+      state.products = state.products.filter(function(x){ return String(x.id) !== String(id); });
       saveProductsLocal();
       onDataChanged();
     }
@@ -707,7 +707,7 @@
     var errEl = document.getElementById('productError');
 
     if(!nombre){ errEl.textContent = 'El nombre es obligatorio.'; errEl.classList.add('show'); return; }
-    var dup = state.products.some(function(p){ return p.nombre.toLowerCase() === nombre.toLowerCase() && p.id !== editingProductId; });
+    var dup = state.products.some(function(p){ return p.nombre.toLowerCase() === nombre.toLowerCase() && String(p.id) !== String(editingProductId); });
     if(dup){ errEl.textContent = 'Ya existe un producto con ese nombre.'; errEl.classList.add('show'); return; }
     if(isNaN(costo) || costo < 0){ errEl.textContent = 'Indica un costo válido.'; errEl.classList.add('show'); return; }
     if(isNaN(precio) || precio < 0){ errEl.textContent = 'Indica un precio válido.'; errEl.classList.add('show'); return; }
