@@ -220,6 +220,7 @@
   .form-card h3{font-size:1rem; margin-bottom:16px;}
   .form-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; align-items:end;}
   .form-grid .field{margin-bottom:0;}
+  .form-card .row > .field, .product-modal .row > .field{margin-bottom:0;}
   .form-actions{margin-top:16px; display:flex; align-items:center; gap:14px;}
   .form-actions .btn{width:auto;}
   .hint{font-size:0.78rem; color:var(--ink-faint); margin-top:4px;}
@@ -262,11 +263,11 @@
     position:fixed; inset:0; background:rgba(18,32,27,0.45); display:flex; align-items:center; justify-content:center;
     padding:20px; z-index:100;
   }
-  .modal{
+  .product-modal{
     background:var(--surface); border-radius:var(--radius-l); padding:26px 26px 22px; width:100%; max-width:440px;
     box-shadow:0 20px 60px -20px rgba(0,0,0,0.5); max-height:90dvh; overflow-y:auto;
   }
-  .modal h3{font-size:1.2rem; margin-bottom:18px;}
+  .product-modal h3{font-size:1.2rem; margin-bottom:18px;}
   .modal-foot{display:flex; justify-content:flex-end; gap:10px; margin-top:20px;}
   .modal-foot .btn{width:auto;}
 
