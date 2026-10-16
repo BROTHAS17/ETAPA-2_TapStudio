@@ -22,35 +22,71 @@
   let productosDisponibles = [];
   let ventaEnProceso = false;
 
+  // Lee una lista de localStorage y comprueba que sea un arreglo.
   function leerLista(clave) {
     try {
-      return JSON.parse(localStorage.getItem(clave)) || [];
-    } catch {
+      const contenido = localStorage.getItem(clave);
+
+      if (contenido === null) {
+        return [];
+      }
+
+      const datos = JSON.parse(contenido);
+      return Array.isArray(datos) ? datos : [];
+    } catch (error) {
+      console.error(`No se pudo leer ${clave}:`, error);
       return [];
     }
   }
 
+  // Guarda una lista. Si falla, el error se comunica a quien la invoca.
   function guardarLista(clave, lista) {
     localStorage.setItem(clave, JSON.stringify(lista));
   }
 
   function formatearMoneda(valor) {
-    return "$" + (Number(valor) || 0).toFixed(2);
+    const numero = Number(valor);
+    return "$" + (Number.isFinite(numero) ? numero : 0).toFixed(2);
   }
 
   function obtenerSesion() {
-    try { return JSON.parse(localStorage.getItem(LS_SESION)); }
-    catch { return null; }
+    try {
+      const sesion = JSON.parse(localStorage.getItem(LS_SESION));
+
+      if (
+        !sesion ||
+        typeof sesion !== "object" ||
+        !sesion.nombre ||
+        sesion.id === undefined ||
+        sesion.id === null
+      ) {
+        return null;
+      }
+
+      return sesion;
+    } catch (error) {
+      return null;
+    }
   }
 
   function obtenerProductoSeleccionado() {
     const id = Number(selectProducto.value);
-    return productosDisponibles.find(producto => Number(producto.id) === id) || null;
+
+    if (!selectProducto.value) {
+      return null;
+    }
+
+    return (
+      productosDisponibles.find(
+        producto => Number(producto.id) === id
+      ) || null
+    );
   }
 
   function mostrarMensaje(texto, tipo) {
     mensajeResultado.textContent = texto;
-    mensajeResultado.className = "mensaje " + (tipo === "error" ? "error" : "exito");
+    mensajeResultado.className =
+      "mensaje " + (tipo === "error" ? "error" : "exito");
   }
 
   function limpiarMensaje() {
@@ -58,26 +94,74 @@
     mensajeResultado.className = "mensaje";
   }
 
+  function mostrarAdvertencia(texto) {
+    advertenciaStock.textContent = texto;
+    advertenciaStock.classList.add("visible");
+  }
+
+  function ocultarAdvertencia() {
+    advertenciaStock.textContent = "";
+    advertenciaStock.classList.remove("visible");
+  }
+
+  function productoValido(producto) {
+    if (!producto || typeof producto !== "object") {
+      return false;
+    }
+
+    const precio = Number(producto.precio);
+    const stock = Number(producto.stock);
+
+    return (
+      producto.id !== undefined &&
+      producto.id !== null &&
+      typeof producto.nombre === "string" &&
+      producto.nombre.trim() !== "" &&
+      Number.isFinite(precio) &&
+      precio > 0 &&
+      Number.isSafeInteger(stock) &&
+      stock >= 0
+    );
+  }
+
   function renderizarProductos() {
     selectProducto.innerHTML = "";
-    const disponibles = productosDisponibles.filter(p => Number(p.stock) > 0);
+
+    const disponibles = productosDisponibles.filter(producto =>
+      productoValido(producto) && Number(producto.stock) > 0
+    );
 
     if (!disponibles.length) {
-      selectProducto.innerHTML = '<option value="" disabled selected>No hay productos con existencias disponibles</option>';
+      const opcion = document.createElement("option");
+      opcion.value = "";
+      opcion.disabled = true;
+      opcion.selected = true;
+      opcion.textContent = "No hay productos con existencias disponibles";
+      selectProducto.appendChild(opcion);
       return;
     }
 
-    selectProducto.innerHTML = '<option value="" disabled selected>Seleccione un producto…</option>';
+    const opcionInicial = document.createElement("option");
+    opcionInicial.value = "";
+    opcionInicial.disabled = true;
+    opcionInicial.selected = true;
+    opcionInicial.textContent = "Seleccione un producto…";
+    selectProducto.appendChild(opcionInicial);
+
     disponibles.forEach(producto => {
-      const option = document.createElement("option");
-      option.value = producto.id;
-      option.textContent = `${producto.nombre} — ${formatearMoneda(producto.precio)} (stock: ${producto.stock})`;
-      selectProducto.appendChild(option);
+      const opcion = document.createElement("option");
+      opcion.value = String(producto.id);
+      opcion.textContent =
+        `${producto.nombre} — ${formatearMoneda(producto.precio)} ` +
+        `(stock: ${producto.stock})`;
+
+      selectProducto.appendChild(opcion);
     });
   }
 
   function cargarProductos() {
     estadoCarga.textContent = "";
+
     productosDisponibles = leerLista(LS_PRODUCTOS);
     renderizarProductos();
     actualizarResumenYValidacion();
@@ -86,78 +170,136 @@
   function actualizarResumenYValidacion() {
     const producto = obtenerProductoSeleccionado();
     const cantidad = Number(inputCantidad.value);
-    limpiarMensaje();
 
-    if (!producto) {
+    limpiarMensaje();
+    btnConfirmarVenta.disabled = true;
+
+    if (!producto || !productoValido(producto)) {
       resumenProducto.textContent = "—";
       resumenPrecio.textContent = formatearMoneda(0);
       resumenCantidad.textContent = "0";
       resumenTotal.textContent = formatearMoneda(0);
       infoStock.textContent = "Existencias disponibles: —";
-      advertenciaStock.classList.remove("visible");
-      btnConfirmarVenta.disabled = true;
+      ocultarAdvertencia();
       return;
     }
 
-    const cantidadValida = Number.isInteger(cantidad) && cantidad >= 1;
-    infoStock.textContent = `Existencias disponibles: ${producto.stock}`;
+    const precio = Number(producto.precio);
+    const stock = Number(producto.stock);
+    const cantidadValida =
+      inputCantidad.value.trim() !== "" &&
+      Number.isSafeInteger(cantidad) &&
+      cantidad >= 1;
+
+    infoStock.textContent = `Existencias disponibles: ${stock}`;
     resumenProducto.textContent = producto.nombre;
-    resumenPrecio.textContent = formatearMoneda(producto.precio);
+    resumenPrecio.textContent = formatearMoneda(precio);
     resumenCantidad.textContent = cantidadValida ? String(cantidad) : "0";
-    resumenTotal.textContent = formatearMoneda(cantidadValida ? producto.precio * cantidad : 0);
+    resumenTotal.textContent = formatearMoneda(
+      cantidadValida ? precio * cantidad : 0
+    );
 
     if (!cantidadValida) {
-      advertenciaStock.textContent = "Ingrese una cantidad válida (entero mayor o igual a 1).";
-      advertenciaStock.classList.add("visible");
-      btnConfirmarVenta.disabled = true;
+      mostrarAdvertencia(
+        "Ingrese una cantidad válida (entero mayor o igual a 1)."
+      );
       return;
     }
 
-    if (cantidad > Number(producto.stock)) {
-      advertenciaStock.textContent = `La cantidad solicitada (${cantidad}) supera el stock disponible (${producto.stock}).`;
-      advertenciaStock.classList.add("visible");
-      btnConfirmarVenta.disabled = true;
+    if (cantidad > stock) {
+      mostrarAdvertencia(
+        `La cantidad solicitada (${cantidad}) supera el stock disponible (${stock}).`
+      );
       return;
     }
 
-    advertenciaStock.classList.remove("visible");
-    btnConfirmarVenta.disabled = false;
+    ocultarAdvertencia();
+    btnConfirmarVenta.disabled = ventaEnProceso;
+  }
+
+  function restaurarDato(clave, contenidoOriginal) {
+    if (contenidoOriginal === null) {
+      localStorage.removeItem(clave);
+    } else {
+      localStorage.setItem(clave, contenidoOriginal);
+    }
   }
 
   function confirmarVenta(evento) {
     evento.preventDefault();
-    if (ventaEnProceso) return;
+
+    if (ventaEnProceso) {
+      return;
+    }
 
     const sesion = obtenerSesion();
+
     if (!sesion) {
       window.location.href = "MiTiendita/login.html";
       return;
     }
 
-    const producto = obtenerProductoSeleccionado();
+    const productoSeleccionado = obtenerProductoSeleccionado();
     const cantidad = Number(inputCantidad.value);
 
-    if (!producto || !Number.isInteger(cantidad) || cantidad < 1 || cantidad > Number(producto.stock)) {
-      mostrarMensaje("Seleccione un producto y una cantidad válida.", "error");
+    if (
+      !productoSeleccionado ||
+      !Number.isSafeInteger(cantidad) ||
+      inputCantidad.value.trim() === "" ||
+      cantidad < 1
+    ) {
+      mostrarMensaje(
+        "Seleccione un producto e ingrese una cantidad válida.",
+        "error"
+      );
       actualizarResumenYValidacion();
       return;
     }
 
     ventaEnProceso = true;
     btnConfirmarVenta.disabled = true;
+    limpiarMensaje();
+
+    // Conserva el contenido original para intentar restaurarlo
+    // si alguno de los guardados falla.
+    let productosOriginales = null;
+    let ventasOriginales = null;
+    let guardadoIniciado = false;
 
     try {
-      const productos = leerLista(LS_PRODUCTOS);
-      const productoActual = productos.find(p => Number(p.id) === Number(producto.id));
+      productosOriginales = localStorage.getItem(LS_PRODUCTOS);
+      ventasOriginales = localStorage.getItem(LS_VENTAS);
 
-      if (!productoActual || Number(productoActual.stock) < cantidad) {
-        throw new Error("El stock cambió. Actualice la pantalla e intente nuevamente.");
+      const productos = leerLista(LS_PRODUCTOS);
+      const ventas = leerLista(LS_VENTAS);
+
+      const productoActual = productos.find(
+        producto =>
+          Number(producto.id) === Number(productoSeleccionado.id)
+      );
+
+      // Se vuelve a validar con los datos almacenados al confirmar.
+      if (!productoValido(productoActual)) {
+        throw new Error(
+          "El producto ya no existe o sus datos son inválidos. Recargue la pantalla."
+        );
       }
 
-      productoActual.stock = Number(productoActual.stock) - cantidad;
-      guardarLista(LS_PRODUCTOS, productos);
+      const stockActual = Number(productoActual.stock);
+      const precioActual = Number(productoActual.precio);
 
-      const ventas = leerLista(LS_VENTAS);
+      if (stockActual < cantidad) {
+        throw new Error(
+          `Stock insuficiente. Existencias actuales: ${stockActual}.`
+        );
+      }
+
+      const total = precioActual * cantidad;
+
+      if (!Number.isFinite(total)) {
+        throw new Error("No se pudo calcular el total de la venta.");
+      }
+
       const venta = {
         id: Date.now(),
         fecha: new Date().toISOString(),
@@ -165,21 +307,58 @@
         usuarioId: sesion.id,
         productoId: productoActual.id,
         producto: productoActual.nombre,
-        precioUnitario: Number(productoActual.precio),
-        cantidad,
-        total: Number(productoActual.precio) * cantidad
+        precioUnitario: precioActual,
+        cantidad: cantidad,
+        total: total
       };
 
+      // Prepara ambos cambios antes de guardarlos.
+      productoActual.stock = stockActual - cantidad;
       ventas.push(venta);
+
+      guardadoIniciado = true;
+
+      // Si el segundo guardado falla, se intenta restaurar el primero.
+      guardarLista(LS_PRODUCTOS, productos);
       guardarLista(LS_VENTAS, ventas);
 
-      mostrarMensaje(`Venta registrada: ${cantidad} × ${productoActual.nombre} = ${formatearMoneda(venta.total)}.`, "exito");
+      mostrarMensaje(
+        `Venta registrada: ${cantidad} × ${productoActual.nombre} = ${formatearMoneda(total)}.`,
+        "exito"
+      );
+
       formVenta.reset();
-      inputCantidad.value = 1;
+      inputCantidad.value = "1";
+
       cargarProductos();
     } catch (error) {
       console.error("Error al registrar la venta:", error);
-      mostrarMensaje(error.message || "No se pudo registrar la venta.", "error");
+
+      if (guardadoIniciado) {
+        try {
+          restaurarDato(LS_PRODUCTOS, productosOriginales);
+          restaurarDato(LS_VENTAS, ventasOriginales);
+        } catch (errorRestauracion) {
+          console.error(
+            "No fue posible restaurar todos los datos originales:",
+            errorRestauracion
+          );
+
+          mostrarMensaje(
+            "Ocurrió un error al guardar y no se pudo confirmar la restauración de los datos. Verifique el inventario y el historial de ventas antes de continuar.",
+            "error"
+          );
+
+          cargarProductos();
+          return;
+        }
+      }
+
+      mostrarMensaje(
+        error.message || "No se pudo registrar la venta.",
+        "error"
+      );
+
       cargarProductos();
     } finally {
       ventaEnProceso = false;
@@ -188,14 +367,25 @@
   }
 
   const sesion = obtenerSesion();
+
   if (!sesion) {
     window.location.href = "MiTiendita/login.html";
     return;
   }
 
   nombreVendedor.textContent = sesion.nombre;
-  selectProducto.addEventListener("change", actualizarResumenYValidacion);
-  inputCantidad.addEventListener("input", actualizarResumenYValidacion);
+
+  selectProducto.addEventListener(
+    "change",
+    actualizarResumenYValidacion
+  );
+
+  inputCantidad.addEventListener(
+    "input",
+    actualizarResumenYValidacion
+  );
+
   formVenta.addEventListener("submit", confirmarVenta);
+
   cargarProductos();
 })();
