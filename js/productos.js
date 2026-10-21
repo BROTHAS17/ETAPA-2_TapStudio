@@ -347,8 +347,14 @@ if (!sesion) {
         }
 
         if (!confirmado) {
-            return;
-        }
+    if (typeof mostrarAdvertencia === "function") {
+        await mostrarAdvertencia(
+            `El producto "${producto.nombre}" no fue eliminado.`,
+            "Eliminación cancelada"
+        );
+    }
+    return;
+}
 
         const actualizados = productos.filter(
             elemento => Number(elemento.id) !== Number(id)
