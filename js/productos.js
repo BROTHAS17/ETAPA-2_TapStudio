@@ -316,17 +316,37 @@ if (!sesion) {
         modal.show();
     }
 
-    function eliminarProducto(id) {
+    
+    async function eliminarProducto(id) {
         const producto = productos.find(
             elemento => Number(elemento.id) === Number(id)
         );
 
         if (!producto) {
-            alert("No se encontró el producto.");
+            if (typeof mostrarError === "function") {
+                mostrarError("No se encontró el producto.");
+            } else {
+                alert("No se encontró el producto.");
+            }
             return;
         }
 
-        if (!confirm(`¿Deseas eliminar "${producto.nombre}"?`)) {
+        let confirmado;
+
+        if (typeof confirmarAccion === "function") {
+            confirmado = await confirmarAccion({
+                titulo: "¿Eliminar producto?",
+                mensaje: `¿Estás seguro de que deseas eliminar "${producto.nombre}"?`,
+                textoConfirmar: "Sí, eliminar",
+                textoCancelar: "Cancelar"
+            });
+        } else {
+            confirmado = confirm(
+                `¿Deseas eliminar "${producto.nombre}"?`
+            );
+        }
+
+        if (!confirmado) {
             return;
         }
 
@@ -337,6 +357,7 @@ if (!sesion) {
         try {
             guardarProductos(actualizados);
             productos = actualizados;
+
             mostrarProductos(
                 productos.filter(producto =>
                     producto.nombre.toLocaleLowerCase().includes(
@@ -344,11 +365,26 @@ if (!sesion) {
                     )
                 )
             );
+
+            if (typeof mostrarExito === "function") {
+                mostrarExito(
+                    `El producto "${producto.nombre}" fue eliminado correctamente.`,
+                    "¡Producto eliminado!"
+                );
+            }
         } catch (error) {
             console.error(error);
-            alert("No se pudo guardar el cambio. Intenta nuevamente.");
+
+            if (typeof mostrarError === "function") {
+                mostrarError(
+                    "No se pudo guardar el cambio. Intenta nuevamente."
+                );
+            } else {
+                alert("No se pudo guardar el cambio. Intenta nuevamente.");
+            }
         }
     }
+
 
     formProducto.addEventListener("submit", function (evento) {
         evento.preventDefault();
