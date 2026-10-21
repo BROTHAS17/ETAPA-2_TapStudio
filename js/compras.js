@@ -182,49 +182,69 @@
     }
   }
 
-  function validarCompra() {
+  
+function validarCompra() {
+    const errores = [];
+
     const proveedor = proveedores.find(
-      p => String(p.id) === selectProveedor.value
+        p => String(p.id) === selectProveedor.value
     );
 
     const producto = productos.find(
-      p => String(p.id) === selectProducto.value
+        p => String(p.id) === selectProducto.value
     );
 
-    const cantidad = Number(inputCantidad.value);
-    const costo = Number(inputCosto.value);
+    const cantidadTexto = inputCantidad.value.trim();
+    const costoTexto = inputCosto.value.trim();
+
+    const cantidad = Number(cantidadTexto);
+    const costo = Number(costoTexto);
     const total = cantidad * costo;
 
     if (!proveedor) {
-      throw new Error("Selecciona un proveedor válido.");
+        errores.push("Seleccioná un proveedor.");
     }
 
     if (!producto) {
-      throw new Error("Selecciona un producto válido.");
+        errores.push("Seleccioná un producto.");
     }
 
     if (
-      inputCantidad.value.trim() === "" ||
-      !Number.isSafeInteger(cantidad) ||
-      cantidad <= 0
+        cantidadTexto === "" ||
+        !Number.isSafeInteger(cantidad) ||
+        cantidad <= 0
     ) {
-      throw new Error("La cantidad debe ser un entero mayor que cero.");
+        errores.push(
+            "La cantidad comprada debe ser un entero mayor que cero."
+        );
     }
 
     if (
-      inputCosto.value.trim() === "" ||
-      !Number.isFinite(costo) ||
-      costo <= 0 ||
-      !Number.isFinite(total) ||
-      total <= 0
+        costoTexto === "" ||
+        !Number.isFinite(costo) ||
+        costo <= 0
     ) {
-      throw new Error("El costo y el total deben ser importes válidos mayores que cero.");
+        errores.push(
+            "El precio unitario de compra debe ser mayor que cero."
+        );
+    }
+
+    if (
+        cantidad > 0 &&
+        costo > 0 &&
+        (!Number.isFinite(total) || total <= 0)
+    ) {
+        errores.push("El total de la compra debe ser válido y mayor que cero.");
+    }
+
+    if (errores.length > 0) {
+        throw new Error(errores.join("\n"));
     }
 
     return { proveedor, producto, cantidad, costo, total };
-  }
+}
 
-  form.addEventListener("submit", evento => {
+  form.addEventListener("submit", async evento => {
     evento.preventDefault();
 
     if (registrando) return;
@@ -233,13 +253,19 @@
 
     let datos;
 
-    try {
-      datos = validarCompra();
-    } catch (error) {
-      mostrarMensaje(error.message, "warning");
-      return;
+   try {
+    datos = validarCompra();
+} catch (error) {
+    if (typeof mostrarError === "function") {
+        await mostrarError(
+            error.message,
+            "Revisá los datos de la compra"
+        );
+    } else {
+        mostrarMensaje(error.message, "warning");
     }
-
+    return;
+}
     registrando = true;
     btnRegistrar.disabled = true;
 
