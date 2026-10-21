@@ -209,12 +209,6 @@
     mostrarAdvertencia(
         `La cantidad solicitada (${cantidad}) supera el stock disponible (${stock}).`
     );
-    if (typeof mostrarError === "function") {
-        mostrarError(
-            `Solicitaste ${cantidad} unidades, pero solo hay ${stock} disponibles.`,
-            "Stock insuficiente"
-        );
-    }
     return;
 }
 
@@ -247,20 +241,15 @@
     const productoSeleccionado = obtenerProductoSeleccionado();
     const cantidad = Number(inputCantidad.value);
 
-    if (
-      !productoSeleccionado ||
-      !Number.isSafeInteger(cantidad) ||
-      inputCantidad.value.trim() === "" ||
-      cantidad < 1
-    ) {
-      mostrarMensaje(
-        "Seleccione un producto e ingrese una cantidad válida.",
-        "error"
-      );
-      actualizarResumenYValidacion();
-      return;
+    if (!productoSeleccionado || !Number.isSafeInteger(cantidad) || inputCantidad.value.trim() === "" || cantidad < 1) {
+    if (typeof mostrarError === "function") {
+        mostrarError("Seleccione un producto e ingrese una cantidad válida.", "Datos inválidos");
+    } else {
+        mostrarMensaje("Seleccione un producto e ingrese una cantidad válida.", "error");
     }
-
+    actualizarResumenYValidacion();
+    return;
+}
     ventaEnProceso = true;
     btnConfirmarVenta.disabled = true;
     limpiarMensaje();
@@ -292,18 +281,21 @@
 
       const stockActual = Number(productoActual.stock);
       const precioActual = Number(productoActual.precio);
-
-      if (stockActual < cantidad) {
-        throw new Error(
-          `Stock insuficiente. Existencias actuales: ${stockActual}.`
-        );
-      }
-
       const total = precioActual * cantidad;
-
-      if (!Number.isFinite(total)) {
-        throw new Error("No se pudo calcular el total de la venta.");
-      }
+      if (stockActual < cantidad) {
+    if (typeof mostrarError === "function") {
+        mostrarError(
+            `Solicitaste ${cantidad} unidades, pero solo hay ${stockActual} disponibles.`,
+            "Stock insuficiente"
+        );
+    } else {
+        mostrarMensaje(
+            `Stock insuficiente. Existencias actuales: ${stockActual}.`,
+            "error"
+        );
+    }
+    return;
+}
 
       const venta = {
         id: Date.now(),
