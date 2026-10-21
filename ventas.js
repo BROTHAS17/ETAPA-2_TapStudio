@@ -323,9 +323,16 @@
       guardarLista(LS_VENTAS, ventas);
 
       mostrarMensaje(
-        `Venta registrada: ${cantidad} × ${productoActual.nombre} = ${formatearMoneda(total)}.`,
-        "exito"
-      );
+    `Venta registrada: ${cantidad} × ${productoActual.nombre} = ${formatearMoneda(total)}.`,
+    "exito"
+);
+
+if (typeof mostrarExito === "function") {
+    mostrarExito(
+        `Se vendieron ${cantidad} unidades de ${productoActual.nombre} por ${formatearMoneda(total)}.`,
+        "¡Venta registrada!"
+    );
+}
 
       formVenta.reset();
       inputCantidad.value = "1";
