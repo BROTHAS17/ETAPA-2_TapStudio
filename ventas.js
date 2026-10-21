@@ -209,9 +209,9 @@
     mostrarAdvertencia(
         `La cantidad solicitada (${cantidad}) supera el stock disponible (${stock}).`
     );
+    btnConfirmarVenta.disabled = ventaEnProceso;
     return;
 }
-
     ocultarAdvertencia();
     btnConfirmarVenta.disabled = ventaEnProceso;
   }
