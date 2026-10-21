@@ -205,13 +205,18 @@
       );
       return;
     }
-
     if (cantidad > stock) {
-      mostrarAdvertencia(
+    mostrarAdvertencia(
         `La cantidad solicitada (${cantidad}) supera el stock disponible (${stock}).`
-      );
-      return;
+    );
+    if (typeof mostrarError === "function") {
+        mostrarError(
+            `Solicitaste ${cantidad} unidades, pero solo hay ${stock} disponibles.`,
+            "Stock insuficiente"
+        );
     }
+    return;
+}
 
     ocultarAdvertencia();
     btnConfirmarVenta.disabled = ventaEnProceso;
