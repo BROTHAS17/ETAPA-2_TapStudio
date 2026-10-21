@@ -1,0 +1,45 @@
+/* Mi Tiendita - Estilos para las alertas */
+
+/* Apariencia general de los diálogos */
+.swal2-popup {
+    border-radius: 16px !important;
+    font-family: Arial, sans-serif;
+}
+
+/* Título */
+.swal2-title {
+    color: #1f2937;
+    font-size: 1.5rem;
+}
+
+/* Texto del mensaje */
+.swal2-html-container,
+.swal2-content {
+    color: #4b5563;
+    font-size: 1rem;
+}
+
+/* Botones */
+.swal2-confirm,
+.swal2-cancel {
+    border-radius: 8px !important;
+    padding: 10px 20px !important;
+    font-weight: 600;
+}
+
+/* Animación suave */
+.swal2-popup {
+    animation: aparecer 0.2s ease-in-out;
+}
+
+@keyframes aparecer {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
