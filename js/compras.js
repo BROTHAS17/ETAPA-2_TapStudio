@@ -303,16 +303,18 @@
       totalCompra.textContent = "$0.00";
       form.classList.remove("was-validated");
 
-      mostrarMensaje(
-  `Compra registrada. Se agregaron ${datos.cantidad} unidades de ${compra.producto} al inventario.`,
-  "success"
-);
-
-if (typeof mostrarExito === "function") {
-  mostrarExito(
-    `Se agregaron ${datos.cantidad} unidades de ${compra.producto} al inventario.`,
-    "¡Compra registrada!"
+        mostrarMensaje(
+        `Compra registrada. Se agregaron ${datos.cantidad} unidades de ${compra.producto} al inventario.`,
+        "success"
       );
+
+      if (typeof mostrarExito === "function") {
+        mostrarExito(
+          `Se agregaron ${datos.cantidad} unidades de ${compra.producto} al inventario.`,
+          "¡Compra registrada!"
+        );
+      }
+
     } catch (error) {
       let restauracionCorrecta = true;
 
