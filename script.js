@@ -637,9 +637,63 @@
     }).join('');
   }
 
+var graficaProductos = null;
+
+function dibujarGraficaProductos(productos) {
+  var canvas = document.getElementById('graficaProductos');
+
+  if (!canvas) return;
+
+  if (graficaProductos) {
+    graficaProductos.destroy();
+  }
+
+  var nombres = productos.map(function(producto) {
+    return producto.nombre;
+  });
+
+  var cantidades = productos.map(function(producto) {
+    return producto.cantidad;
+  });
+
+  if (nombres.length === 0) {
+    nombres = ['Sin ventas'];
+    cantidades = [0];
+  }
+
+  graficaProductos = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: nombres,
+      datasets: [{
+        label: 'Unidades vendidas',
+        data: cantidades,
+        backgroundColor: '#2563eb'
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1
+          }
+        }
+      }
+    }
+  });
+}
+
   /* ============ RENDER: REPORTES ============ */
   function renderReportes(){
     var data = reportData(state.reportRange);
+    dibujarGraficaProductos(data.top);
     var kpis = [
       {num: money(data.totalVentas), label:'Total en ventas', tone:'success'},
       {num: money(data.totalCompras), label:'Total en compras', tone:''},
@@ -649,13 +703,6 @@
     document.getElementById('reporteKpis').innerHTML = kpis.map(function(k){
       return '<div class="kpi-card' + (k.tone?' tone-'+k.tone:'') + '"><div class="kpi-num">' + k.num + '</div><div class="kpi-label">' + k.label + '</div></div>';
     }).join('');
-
-    var maxCant = data.top.length ? Math.max.apply(null, data.top.map(function(t){return t.cantidad;})) : 1;
-    var topHtml = data.top.map(function(t){
-      var pct = Math.round((t.cantidad/maxCant)*100);
-      return '<div class="bar-row"><div class="bar-top"><span class="nom">'+escapeHtml(t.nombre)+'</span><span>'+t.cantidad+' u · '+money(t.total)+'</span></div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;"></div></div></div>';
-    }).join('');
-    document.getElementById('topProductos').innerHTML = topHtml || '<div class="empty-state">Sin ventas en este periodo.</div>';
 
     var tipo = state.histTipo;
     var hist = data.movs.filter(function(m){ return !tipo || m.tipo === tipo; })
@@ -717,10 +764,10 @@
     try{
       if(editingProductId){
         await commitEditarProducto(editingProductId, {nombre:nombre, categoria:categoria, costo:round2(costo), precio:round2(precio), stockMinimo:stockMin});
-        showToast('Producto actualizado');
+        mostrarExito('Producto actualizado correctamente.');
       } else {
         await commitNuevoProducto({nombre:nombre, categoria:categoria, costo:round2(costo), precio:round2(precio), stockMinimo:stockMin, stockInicial:stockInicial});
-        showToast('Producto agregado');
+        mostrarExito('Producto agregado correctamente.');
       }
       closeProductModal();
       renderCurrentView();
@@ -730,14 +777,38 @@
     }
   }
 
+function mostrarExito(mensaje) {
+  Swal.fire({
+    icon: 'success',
+    title: '¡Listo!',
+    text: mensaje,
+    confirmButtonColor: '#2563eb'
+  });
+}
+
+async function confirmarEliminar(nombre) {
+  var respuesta = await Swal.fire({
+    icon: 'warning',
+    title: '¿Eliminar producto?',
+    text: 'Se eliminará "' + nombre + '".',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#dc2626',
+    cancelButtonColor: '#6b7280'
+  });
+
+  return respuesta.isConfirmed;
+}
+
   async function handleDeleteProduct(id){
     var p = findProduct(id);
     if(!p) return;
-    var ok = confirm('¿Eliminar "' + p.nombre + '" del catálogo? Esta acción no se puede deshacer.');
-    if(!ok) return;
+    var ok = await confirmarEliminar(p.nombre);
+    if (!ok) return;
     try{
       await commitEliminarProducto(id);
-      showToast('Producto eliminado');
+      mostrarExito('Producto eliminado correctamente.');
       renderCurrentView();
     }catch(err){ showToast('No se pudo eliminar: ' + err.message); }
   }
@@ -755,7 +826,7 @@
     if(!p){ errEl.textContent = 'Selecciona un producto.'; return; }
     try{
       await commitCompra(p, cantidad, costo, proveedor);
-      showToast('Compra registrada');
+      mostrarExito('Compra registrada correctamente.');
       document.getElementById('compraCantidad').value = 1;
       document.getElementById('compraProveedor').value = '';
       document.getElementById('compraCosto').value = '';
@@ -775,7 +846,7 @@
     if(!p){ errEl.textContent = 'Selecciona un producto.'; return; }
     try{
       await commitVenta(p, cantidad, precio);
-      showToast('Venta registrada');
+      mostrarExito('Venta registrada correctamente.');
       document.getElementById('ventaCantidad').value = 1;
       document.getElementById('ventaPrecio').value = '';
       renderCurrentView();
