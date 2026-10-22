@@ -14,13 +14,14 @@
   };
 
   var NAV_ITEMS = [
-    {key:'panel', label:'Panel', icon:ICONS.panel, roles:['admin','vendedor']},
-    {key:'inventario', label:'Inventario', icon:ICONS.inventario, roles:['admin','vendedor']},
-    {key:'compras', label:'Compras', icon:ICONS.compras, roles:['admin']},
-    {key:'ventas', label:'Ventas', icon:ICONS.ventas, roles:['admin','vendedor']},
-    {key:'alertas', label:'Alertas', icon:ICONS.alertas, roles:['admin','vendedor']},
-    {key:'reportes', label:'Reportes', icon:ICONS.reportes, roles:['admin']}
-  ];
+  {key:'panel', label:'Panel', icon:ICONS.panel, roles:['admin','vendedor']},
+  {key:'inventario', label:'Inventario', icon:ICONS.inventario, roles:['admin','vendedor']},
+  {key:'compras', label:'Compras', icon:ICONS.compras, roles:['admin']},
+  {key:'ventas', label:'Ventas', icon:ICONS.ventas, roles:['admin','vendedor']},
+  {key:'alertas', label:'Alertas', icon:ICONS.alertas, roles:['admin','vendedor']},
+  {key:'reportes', label:'Reportes', icon:ICONS.reportes, roles:['admin']},
+  {key:'proveedores', label:'Proveedores', icon:ICONS.inventario, href:'proveedores.html', roles:['admin','vendedor']}
+];
 
   /* ============ ESTADO ============ */
   var STORE_PRODUCTS = 'tiendita_productos';
@@ -434,22 +435,49 @@
   function isAdmin(){ return state.user && state.user.rol === 'admin'; }
 
   function buildNav(container){
-    container.innerHTML = '';
-    var role = state.user ? state.user.rol : 'vendedor';
-    NAV_ITEMS.filter(function(it){ return it.roles.indexOf(role) !== -1; }).forEach(function(it){
-      var btn = document.createElement('button');
-      btn.className = 'nav-item' + (state.currentView === it.key ? ' active' : '');
-      btn.dataset.view = it.key;
-      var badge = '';
-      if(it.key === 'alertas'){
-        var n = lowStockProducts().length;
-        if(n > 0) badge = '<span class="nav-badge">' + n + '</span>';
+  container.innerHTML = '';
+
+  var role = state.user ? state.user.rol : 'vendedor';
+
+  NAV_ITEMS
+    .filter(function(it){
+      return it.roles.indexOf(role) !== -1;
+    })
+    .forEach(function(it){
+      var btn = document.createElement(it.href ? 'a' : 'button');
+
+      btn.className = 'nav-item' +
+        (state.currentView === it.key ? ' active' : '');
+
+      if (it.href) {
+        btn.href = it.href;
+      } else {
+        btn.dataset.view = it.key;
       }
-      btn.innerHTML = it.icon + '<span>' + it.label + '</span>' + badge;
-      btn.addEventListener('click', function(){ setView(it.key); });
+
+      var badge = '';
+
+      if (it.key === 'alertas') {
+        var n = lowStockProducts().length;
+
+        if (n > 0) {
+          badge = '<span class="nav-badge">' + n + '</span>';
+        }
+      }
+
+      btn.innerHTML = it.icon +
+        '<span>' + it.label + '</span>' +
+        badge;
+
+      if (!it.href) {
+        btn.addEventListener('click', function(){
+          setView(it.key);
+        });
+      }
+
       container.appendChild(btn);
     });
-  }
+}
 
   function renderNav(){
     buildNav(document.getElementById('sidebarNav'));
