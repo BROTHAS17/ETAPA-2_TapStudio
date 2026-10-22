@@ -20,7 +20,7 @@
   {key:'ventas', label:'Ventas', icon:ICONS.ventas, roles:['admin','vendedor']},
   {key:'alertas', label:'Alertas', icon:ICONS.alertas, roles:['admin','vendedor']},
   {key:'reportes', label:'Reportes', icon:ICONS.reportes, roles:['admin']},
-  {key:'proveedores', label:'Proveedores', icon:ICONS.inventario, href:'proveedores.html', roles:['admin','vendedor']}
+  {key:'proveedores', label:'Proveedores', icon:ICONS.inventario, roles:['admin','vendedor']}
 ];
 
   /* ============ ESTADO ============ */
@@ -431,54 +431,145 @@
     setTimeout(function(){ t.remove(); }, 2600);
   }
 
+
+  /* ============ PROVEEDORES INTEGRADOS ============ */
+  var STORE_PROVIDERS = 'tiendita_proveedores';
+  var providerEditingId = null;
+
+  function loadProviders(){
+    try{
+      var data = JSON.parse(localStorage.getItem(STORE_PROVIDERS) || '[]');
+      return Array.isArray(data) ? data : [];
+    }catch(e){ return []; }
+  }
+
+  function saveProviders(list){
+    localStorage.setItem(STORE_PROVIDERS, JSON.stringify(list));
+  }
+
+  function providerError(message){
+    var el = document.getElementById('provError');
+    if(el){ el.textContent = message || ''; el.classList.toggle('show', !!message); }
+  }
+
+  function clearProviderForm(){
+    var form = document.getElementById('proveedorForm');
+    if(form) form.reset();
+    document.getElementById('provId').value = '';
+    document.getElementById('provFormTitle').textContent = 'Registrar proveedor';
+    providerEditingId = null;
+    providerError('');
+  }
+
+  function renderProveedores(){
+    var body = document.getElementById('provBody');
+    if(!body) return;
+    var q = (document.getElementById('provSearch').value || '').toLowerCase().trim();
+    var providers = loadProviders().filter(function(p){
+      return [p.nombre,p.telefono,p.correo,p.empresa].some(function(value){
+        return String(value || '').toLowerCase().indexOf(q) !== -1;
+      });
+    });
+    body.innerHTML = '';
+    providers.forEach(function(p){
+      var row = document.createElement('tr');
+      var contact = [p.telefono,p.correo].filter(Boolean).join(' · ');
+      row.innerHTML = '<td></td><td></td><td></td><td></td>';
+      row.children[0].textContent = p.nombre || '—';
+      row.children[1].textContent = contact || '—';
+      row.children[2].textContent = p.empresa || '—';
+      var edit = document.createElement('button');
+      edit.className = 'icon-btn'; edit.type = 'button'; edit.textContent = 'Editar';
+      edit.addEventListener('click', function(){ editProvider(p.id); });
+      var del = document.createElement('button');
+      del.className = 'icon-btn'; del.type = 'button'; del.textContent = 'Eliminar';
+      del.addEventListener('click', function(){ deleteProvider(p.id); });
+      row.children[3].append(edit, del);
+      body.appendChild(row);
+    });
+    var status = document.getElementById('provStatus');
+    if(status) status.textContent = providers.length + ' proveedor(es) mostrado(s).';
+  }
+
+  function editProvider(id){
+    var p = loadProviders().find(function(item){ return String(item.id) === String(id); });
+    if(!p) return;
+    providerEditingId = p.id;
+    document.getElementById('provId').value = p.id;
+    document.getElementById('provNombre').value = p.nombre || '';
+    document.getElementById('provTelefono').value = p.telefono || '';
+    document.getElementById('provCorreo').value = p.correo || '';
+    document.getElementById('provEmpresa').value = p.empresa || '';
+    document.getElementById('provDireccion').value = p.direccion || '';
+    document.getElementById('provFormTitle').textContent = 'Editar proveedor';
+    providerError('');
+  }
+
+  async function deleteProvider(id){
+    var p = loadProviders().find(function(item){ return String(item.id) === String(id); });
+    if(!p) return;
+    var confirmed = true;
+    if(window.Swal){
+      var result = await Swal.fire({icon:'warning', title:'¿Eliminar proveedor?', text:'Se eliminará "'+p.nombre+'".', showCancelButton:true, confirmButtonText:'Sí, eliminar', cancelButtonText:'Cancelar', confirmButtonColor:'#A8432B'});
+      confirmed = result.isConfirmed;
+    }else{
+      confirmed = window.confirm('¿Eliminar proveedor?');
+    }
+    if(!confirmed) return;
+    var list = loadProviders().filter(function(item){ return String(item.id) !== String(id); });
+    saveProviders(list); renderProveedores(); clearProviderForm();
+    if(window.Swal) Swal.fire({icon:'success', title:'Proveedor eliminado', text:'El proveedor se eliminó correctamente.', confirmButtonColor:'#D9A62E'});
+  }
+
+  function submitProvider(event){
+    event.preventDefault();
+    var nombre = document.getElementById('provNombre').value.trim();
+    var telefono = document.getElementById('provTelefono').value.trim();
+    var correo = document.getElementById('provCorreo').value.trim();
+    var empresa = document.getElementById('provEmpresa').value.trim();
+    var direccion = document.getElementById('provDireccion').value.trim();
+    if(!nombre){ providerError('El nombre es obligatorio.'); return; }
+    if(!telefono || !/^[0-9+\\s()-]{7,20}$/.test(telefono) || !/\\d{7,}/.test(telefono.replace(/\\D/g,''))){ providerError('Ingresa un teléfono válido.'); return; }
+    if(correo && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(correo)){ providerError('Ingresa un correo válido.'); return; }
+    var list = loadProviders();
+    var duplicate = list.some(function(p){ return String(p.nombre || '').toLowerCase() === nombre.toLowerCase() && String(p.id) !== String(providerEditingId); });
+    if(duplicate){ providerError('Ya existe un proveedor con ese nombre.'); return; }
+    var item = {id: providerEditingId || Date.now(), nombre:nombre, telefono:telefono, correo:correo, empresa:empresa, direccion:direccion};
+    var updated = providerEditingId ? list.map(function(p){ return String(p.id) === String(providerEditingId) ? item : p; }) : list.concat(item);
+    saveProviders(updated); renderProveedores(); clearProviderForm();
+    if(window.Swal) Swal.fire({icon:'success', title:'Proveedor guardado', text:'Los datos se guardaron correctamente.', confirmButtonColor:'#D9A62E'});
+  }
+
+  function initProviders(){
+    var form = document.getElementById('proveedorForm');
+    if(!form || form.dataset.ready) return;
+    form.dataset.ready = 'true';
+    form.addEventListener('submit', submitProvider);
+    document.getElementById('provClearBtn').addEventListener('click', clearProviderForm);
+    document.getElementById('provSearch').addEventListener('input', renderProveedores);
+    renderProveedores();
+  }
+
   /* ============ NAVEGACIÓN ============ */
   function isAdmin(){ return state.user && state.user.rol === 'admin'; }
 
   function buildNav(container){
-  container.innerHTML = '';
-
-  var role = state.user ? state.user.rol : 'vendedor';
-
-  NAV_ITEMS
-    .filter(function(it){
-      return it.roles.indexOf(role) !== -1;
-    })
-    .forEach(function(it){
-      var btn = document.createElement(it.href ? 'a' : 'button');
-
-      btn.className = 'nav-item' +
-        (state.currentView === it.key ? ' active' : '');
-
-      if (it.href) {
-        btn.href = it.href;
-      } else {
-        btn.dataset.view = it.key;
-      }
-
+    container.innerHTML = '';
+    var role = state.user ? state.user.rol : 'vendedor';
+    NAV_ITEMS.filter(function(it){ return it.roles.indexOf(role) !== -1; }).forEach(function(it){
+      var btn = document.createElement('button');
+      btn.className = 'nav-item' + (state.currentView === it.key ? ' active' : '');
+      btn.dataset.view = it.key;
       var badge = '';
-
-      if (it.key === 'alertas') {
+      if(it.key === 'alertas'){
         var n = lowStockProducts().length;
-
-        if (n > 0) {
-          badge = '<span class="nav-badge">' + n + '</span>';
-        }
+        if(n > 0) badge = '<span class="nav-badge">' + n + '</span>';
       }
-
-      btn.innerHTML = it.icon +
-        '<span>' + it.label + '</span>' +
-        badge;
-
-      if (!it.href) {
-        btn.addEventListener('click', function(){
-          setView(it.key);
-        });
-      }
-
+      btn.innerHTML = it.icon + '<span>' + it.label + '</span>' + badge;
+      btn.addEventListener('click', function(){ setView(it.key); });
       container.appendChild(btn);
     });
-}
-
+  }
   function renderNav(){
     buildNav(document.getElementById('sidebarNav'));
     buildNav(document.getElementById('bottomNav'));
@@ -501,6 +592,7 @@
     else if(state.currentView === 'ventas') renderVentas();
     else if(state.currentView === 'alertas') renderAlertas();
     else if(state.currentView === 'reportes') renderReportes();
+    else if(state.currentView === 'proveedores') { initProviders(); renderProveedores(); }
   }
 
   /* ============ RENDER: PANEL ============ */
