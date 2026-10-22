@@ -49,9 +49,23 @@
   }
 
   function mostrarMensaje(texto, tipo) {
-    mensaje.textContent = texto;
-    mensaje.className = "alert alert-" + tipo;
-  }
+  mensaje.textContent = texto;
+  mensaje.className = "alert alert-" + tipo;
+}
+
+function limpiarMensaje() {
+  mensaje.textContent = "";
+  mensaje.className = "alert d-none";
+}
+
+function mostrarExitoSweetAlert(titulo, texto) {
+  Swal.fire({
+    icon: "success",
+    title: titulo,
+    text: texto,
+    confirmButtonColor: "#D9A62E"
+  });
+}
 
   function limpiarMensaje() {
     mensaje.textContent = "";
@@ -180,23 +194,48 @@
     form.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  function eliminarProveedor(id) {
-    const p = proveedores.find(item => String(item.id) === String(id));
-    if (!p) return;
+  async function eliminarProveedor(id) {
+  const p = proveedores.find(item => String(item.id) === String(id));
 
-    if (!confirm(`¿Deseas eliminar al proveedor "${p.nombre}"?`)) return;
+  if (!p) return;
 
-    try {
-      const nuevas = proveedores.filter(item => String(item.id) !== String(id));
-      guardarProveedores(nuevas);
-      proveedores = nuevas;
-      renderizarProveedores();
-      limpiarFormulario();
-      mostrarMensaje("Proveedor eliminado correctamente.", "success");
-    } catch (error) {
-      mostrarMensaje("No se pudo guardar el cambio: " + error.message, "danger");
-    }
+  const respuesta = await Swal.fire({
+    icon: "warning",
+    title: "¿Eliminar proveedor?",
+    text: 'Se eliminará "' + p.nombre + '".',
+    showCancelButton: true,
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar",
+    confirmButtonColor: "#A8432B",
+    cancelButtonColor: "#6B7280"
+  });
+
+  if (!respuesta.isConfirmed) {
+    return;
   }
+
+  try {
+    const nuevas = proveedores.filter(
+      item => String(item.id) !== String(id)
+    );
+
+    guardarProveedores(nuevas);
+    proveedores = nuevas;
+
+    renderizarProveedores();
+    limpiarFormulario();
+
+    mostrarExitoSweetAlert(
+      "Proveedor eliminado",
+      "El proveedor se eliminó correctamente."
+    );
+  } catch (error) {
+    mostrarMensaje(
+      "No se pudo guardar el cambio: " + error.message,
+      "danger"
+    );
+  }
+}
 
   form.addEventListener("submit", evento => {
     evento.preventDefault();
@@ -228,7 +267,10 @@
       proveedores = nuevos;
       limpiarFormulario();
       renderizarProveedores();
-      mostrarMensaje("Proveedor guardado correctamente.", "success");
+      mostrarExitoSweetAlert(
+  "Proveedor guardado",
+  "El proveedor se guardó correctamente."
+);
     } catch (error) {
       mostrarMensaje("No se pudo guardar el proveedor. Verifica el almacenamiento disponible.", "danger");
       console.error(error);
