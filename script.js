@@ -529,7 +529,7 @@
     var empresa = document.getElementById('provEmpresa').value.trim();
     var direccion = document.getElementById('provDireccion').value.trim();
     if(!nombre){ providerError('El nombre es obligatorio.'); return; }
-    if(!telefono || !/^[0-9+\\s()-]{7,20}$/.test(telefono) || !/\\d{7,}/.test(telefono.replace(/\\D/g,''))){ providerError('Ingresa un teléfono válido.'); return; }
+    if(!telefono || !/^[0-9+\s()-]{7,20}$/.test(telefono) || !/\d{7,}/.test(telefono.replace(/\D/g,''))){ providerError('Ingresa un teléfono válido.'); return; }
     if(correo && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(correo)){ providerError('Ingresa un correo válido.'); return; }
     var list = loadProviders();
     var duplicate = list.some(function(p){ return String(p.nombre || '').toLowerCase() === nombre.toLowerCase() && String(p.id) !== String(providerEditingId); });
