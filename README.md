@@ -18,3 +18,14 @@ Alexander Alberto Siguenza Campos
 Buen día Ingeniero, 
 
 Adjuntamos acá también el sitio web: mitiendita.live
+
+Tambien adjuntamos los enlaces al
+
+Video Explicativo:
+
+https://udbedu-my.sharepoint.com/:v:/g/personal/um261449_alumno_udb_edu_sv/IQAThSu1rIHCSan21tz5NjB_AfWGYxhWSAfkLcTm0SHysFU?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=fh07ir
+
+Documento: 
+
+
+Muchas gracias!
