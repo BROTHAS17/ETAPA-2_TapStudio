@@ -463,6 +463,11 @@
     if(target) target.classList.remove('hidden');
     renderNav();
     renderCurrentView();
+
+    if(key === 'reportes'){
+      window.dispatchEvent(new Event('reportesVistaMostrada'));
+    }
+
     if(window.innerWidth > 860) document.getElementById('mainArea').scrollTop = 0;
   }
 
@@ -838,8 +843,7 @@
     document.getElementById('compraForm').addEventListener('submit', handleCompraSubmit);
     document.getElementById('compraProducto').addEventListener('change', syncCompraCosto);
 
-    document.getElementById('ventaForm').addEventListener('submit', handleVentaSubmit);
-    document.getElementById('ventaProducto').addEventListener('change', syncVentaPrecio);
+    
 
     document.getElementById('alertGrid').addEventListener('click', function(e){
       var btn = e.target.closest('[data-action="goto-compra"]');
@@ -861,9 +865,10 @@
       renderReportes();
     });
 
-    // Sincronizar el sistema original con los cambios realizados desde React
+    
+    // Sincronizar el sistema original con las ventas registradas desde React
     window.addEventListener('tienditaDatosActualizados', function(){
-      if(usingSharedDb) return;
+      if (usingSharedDb) return;
 
       try {
         state.products = JSON.parse(
@@ -875,13 +880,17 @@
         );
 
         onDataChanged();
-      } catch(error) {
+      } catch (error) {
         console.error(
           'Error al actualizar los datos desde React:',
           error
         );
       }
     });
+
+    // Inicializar la capa de datos una sola vez
+    initDataLayer();
+
 
     initDataLayer();
 
