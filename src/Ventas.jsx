@@ -7,15 +7,22 @@ function Ventas() {
   const [cantidad, setCantidad] = useState(1);
   const [mensaje, setMensaje] = useState('');
 
+  const leerStorage = (clave, valorInicial) => {
+    try {
+      const datos = JSON.parse(localStorage.getItem(clave) || JSON.stringify(valorInicial));
+      return datos;
+    } catch {
+      return valorInicial;
+    }
+  };
+
   useEffect(() => {
-    const datos = JSON.parse(
-      localStorage.getItem('tiendita_productos') || '[]'
-    );
-    setProductos(datos);
+    const datos = leerStorage('tiendita_productos', []);
+    setProductos(Array.isArray(datos) ? datos : []);
   }, []);
 
   const productoSeleccionado = productos.find(
-    p => Number(p.id) === Number(productoId)
+    p => String(p.id) === String(productoId)
   );
 
   const total = productoSeleccionado
@@ -23,31 +30,39 @@ function Ventas() {
     : 0;
 
   const registrarVenta = () => {
-    if (!productoSeleccionado || !Number.isSafeInteger(Number(cantidad)) || Number(cantidad) < 1) {
+    const cantidadVenta = Number(cantidad);
+
+    if (
+      !productoSeleccionado ||
+      !Number.isSafeInteger(cantidadVenta) ||
+      cantidadVenta < 1
+    ) {
       setMensaje('Seleccione un producto e ingrese una cantidad válida.');
       return;
     }
 
-    const productosActualizados = JSON.parse(
-      localStorage.getItem('tiendita_productos') || '[]'
-    );
+    const productosActualizados = leerStorage('tiendita_productos', []);
+    const ventas = leerStorage('tiendita_ventas', []);
+    const movimientos = leerStorage('tiendita_movimientos', []);
+    const sesion = leerStorage('tiendita_sesion', null);
 
-    const productoActual = productosActualizados.find(
-      p => Number(p.id) === Number(productoId)
-    );
-
-    if (!productoActual || Number(productoActual.stock) < Number(cantidad)) {
-      setMensaje('No hay existencias suficientes.');
+    if (
+      !Array.isArray(productosActualizados) ||
+      !Array.isArray(ventas) ||
+      !Array.isArray(movimientos)
+    ) {
+      setMensaje('No se pudieron leer correctamente los datos.');
       return;
     }
 
-    const ventas = JSON.parse(
-      localStorage.getItem('tiendita_ventas') || '[]'
+    const productoActual = productosActualizados.find(
+      p => String(p.id) === String(productoId)
     );
 
-    const sesion = JSON.parse(
-      localStorage.getItem('tiendita_sesion') || 'null'
-    );
+    if (!productoActual || Number(productoActual.stock) < cantidadVenta) {
+      setMensaje('No hay existencias suficientes.');
+      return;
+    }
 
     if (!sesion || !sesion.nombre || sesion.id == null) {
       setMensaje('Debe iniciar sesión para registrar una venta.');
@@ -55,45 +70,105 @@ function Ventas() {
     }
 
     const precio = Number(productoActual.precio);
-    const totalVenta = precio * Number(cantidad);
+    const costo = Number(productoActual.costo);
 
-    if (!Number.isFinite(totalVenta)) {
-      setMensaje('No se pudo calcular el total.');
+    if (
+      !Number.isFinite(precio) ||
+      precio < 0 ||
+      !Number.isFinite(costo) ||
+      costo < 0
+    ) {
+      setMensaje('El precio o costo del producto no es válido.');
       return;
     }
 
+    const totalVenta = Math.round(precio * cantidadVenta * 100) / 100;
+    const utilidad = Math.round(
+      (precio - costo) * cantidadVenta * 100
+    ) / 100;
+
+    const fecha = new Date().toISOString();
+    const idVenta = Date.now();
+
     const venta = {
-      id: Date.now(),
-      fecha: new Date().toISOString(),
+      id: idVenta,
+      fecha,
       usuario: sesion.nombre,
       usuarioId: sesion.id,
       productoId: productoActual.id,
       producto: productoActual.nombre,
       precioUnitario: precio,
-      cantidad: Number(cantidad),
+      cantidad: cantidadVenta,
       total: totalVenta
     };
 
-    productoActual.stock = Number(productoActual.stock) - Number(cantidad);
+    const movimiento = {
+      id: idVenta,
+      tipo: 'venta',
+      productoId: productoActual.id,
+      productoNombre: productoActual.nombre,
+      cantidad: cantidadVenta,
+      precioUnitario: precio,
+      total: totalVenta,
+      utilidad,
+      usuario: sesion.nombre,
+      fecha
+    };
+
+    productoActual.stock = Number(productoActual.stock) - cantidadVenta;
+
     ventas.push(venta);
+    movimientos.unshift(movimiento);
+
+    const claves = [
+      'tiendita_productos',
+      'tiendita_ventas',
+      'tiendita_movimientos'
+    ];
+
+    const respaldos = {};
+
+    claves.forEach(clave => {
+      respaldos[clave] = localStorage.getItem(clave);
+    });
 
     try {
       localStorage.setItem(
         'tiendita_productos',
         JSON.stringify(productosActualizados)
       );
+
       localStorage.setItem(
         'tiendita_ventas',
         JSON.stringify(ventas)
+      );
+
+      localStorage.setItem(
+        'tiendita_movimientos',
+        JSON.stringify(movimientos)
       );
 
       setProductos(productosActualizados);
       setCantidad(1);
       setProductoId('');
       setMensaje('Venta registrada correctamente.');
+
       window.dispatchEvent(new Event('ventaRegistrada'));
+
     } catch (error) {
-      setMensaje('Error al guardar la venta.');
+      claves.forEach(clave => {
+        try {
+          if (respaldos[clave] === null) {
+            localStorage.removeItem(clave);
+          } else {
+            localStorage.setItem(clave, respaldos[clave]);
+          }
+        } catch (errorRestauracion) {
+          console.error('Error al restaurar datos:', errorRestauracion);
+        }
+      });
+
+      setMensaje('Error al guardar la venta. No se pudo completar la operación.');
     }
   };
 
@@ -107,12 +182,15 @@ function Ventas() {
         onChange={e => setProductoId(e.target.value)}
       >
         <option value="">Seleccione un producto</option>
-        {productos.filter(p => Number(p.stock) > 0).map(p => (
-          <option key={p.id} value={p.id}>
-            {p.nombre} - ${Number(p.precio).toFixed(2)}
-            (Stock: {p.stock})
-          </option>
-        ))}
+
+        {productos
+          .filter(p => Number(p.stock) > 0)
+          .map(p => (
+            <option key={p.id} value={p.id}>
+              {p.nombre} - ${Number(p.precio).toFixed(2)}
+              (Stock: {p.stock})
+            </option>
+          ))}
       </select>
 
       <p>
