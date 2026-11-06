@@ -8,11 +8,13 @@ export const CLAVES = {
 
 export function leerDatos(clave, valorInicial = []) {
   try {
-    const datos = JSON.parse(
-      localStorage.getItem(clave) || JSON.stringify(valorInicial)
-    );
+    const contenido = localStorage.getItem(clave);
 
-    return datos;
+    if (contenido === null) {
+      return valorInicial;
+    }
+
+    return JSON.parse(contenido);
   } catch (error) {
     console.error(`Error al leer ${clave}:`, error);
     return valorInicial;
@@ -20,11 +22,24 @@ export function leerDatos(clave, valorInicial = []) {
 }
 
 export function guardarDatos(clave, datos) {
-  localStorage.setItem(clave, JSON.stringify(datos));
+  try {
+    const contenido = JSON.stringify(datos);
 
-  window.dispatchEvent(
-    new CustomEvent('tienditaDatosActualizados', {
-      detail: { clave }
-    })
-  );
+    if (contenido === undefined) {
+      throw new Error('Los datos no se pueden convertir a JSON.');
+    }
+
+    localStorage.setItem(clave, contenido);
+
+    window.dispatchEvent(
+      new CustomEvent('tienditaDatosActualizados', {
+        detail: { clave }
+      })
+    );
+
+    return true;
+  } catch (error) {
+    console.error(`Error al guardar ${clave}:`, error);
+    throw error;
+  }
 }
