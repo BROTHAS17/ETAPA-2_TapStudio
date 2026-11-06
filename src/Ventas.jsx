@@ -5,36 +5,48 @@ import { CLAVES, leerDatos, guardarDatos } from './storage.js';
 function Ventas() {
   const [productos, setProductos] = useState([]);
   const [productoId, setProductoId] = useState('');
-  const [cantidad, setCantidad] = useState(1);
+  const [cantidad, setCantidad] = useState('1');
   const [mensaje, setMensaje] = useState('');
 
-  useEffect(() => {
+  const cargarProductos = () => {
     const datos = leerDatos(CLAVES.productos, []);
     setProductos(Array.isArray(datos) ? datos : []);
+  };
+
+  useEffect(() => {
+    cargarProductos();
+
+    const actualizar = () => cargarProductos();
+
+    window.addEventListener('tienditaDatosActualizados', actualizar);
+
+    return () => {
+      window.removeEventListener('tienditaDatosActualizados', actualizar);
+    };
   }, []);
 
   const productoSeleccionado = productos.find(
     p => String(p.id) === String(productoId)
   );
 
-  const total = productoSeleccionado
-    ? Number(productoSeleccionado.precio) * Number(cantidad)
+  const cantidadVenta = Number(cantidad);
+
+  const total = productoSeleccionado && Number.isSafeInteger(cantidadVenta)
+    ? Number(productoSeleccionado.precio) * cantidadVenta
     : 0;
 
   const registrarVenta = () => {
-    const cantidadVenta = Number(cantidad);
+    const cantidadConfirmada = Number(cantidad);
 
-    // Validar producto y cantidad
     if (
       !productoSeleccionado ||
-      !Number.isSafeInteger(cantidadVenta) ||
-      cantidadVenta < 1
+      !Number.isSafeInteger(cantidadConfirmada) ||
+      cantidadConfirmada < 1
     ) {
       setMensaje('Seleccione un producto e ingrese una cantidad válida.');
       return;
     }
 
-    // Leer los datos actuales
     const productosActualizados = leerDatos(CLAVES.productos, []);
     const ventas = leerDatos(CLAVES.ventas, []);
     const movimientos = leerDatos(CLAVES.movimientos, []);
@@ -49,28 +61,25 @@ function Ventas() {
       return;
     }
 
-    // Buscar nuevamente el producto
     const productoActual = productosActualizados.find(
       p => String(p.id) === String(productoId)
     );
 
-    // Validar existencias
     if (
       !productoActual ||
-      !Number.isFinite(Number(productoActual.stock)) ||
-      Number(productoActual.stock) < cantidadVenta
+      !Number.isSafeInteger(Number(productoActual.stock)) ||
+      Number(productoActual.stock) < cantidadConfirmada
     ) {
       setMensaje('No hay existencias suficientes.');
+      cargarProductos();
       return;
     }
 
-    // Validar sesión
     if (!sesion || !sesion.nombre || sesion.id == null) {
       setMensaje('Debe iniciar sesión para registrar una venta.');
       return;
     }
 
-    // Obtener precio y costo
     const precio = Number(productoActual.precio);
     const costo = Number(productoActual.costo ?? 0);
 
@@ -84,19 +93,22 @@ function Ventas() {
       return;
     }
 
-    // Calcular total y utilidad
     const totalVenta = Math.round(
-      precio * cantidadVenta * 100
+      precio * cantidadConfirmada * 100
     ) / 100;
 
     const utilidad = Math.round(
-      (precio - costo) * cantidadVenta * 100
+      (precio - costo) * cantidadConfirmada * 100
     ) / 100;
+
+    if (!Number.isFinite(totalVenta) || !Number.isFinite(utilidad)) {
+      setMensaje('No se pudo calcular correctamente la venta.');
+      return;
+    }
 
     const fecha = new Date().toISOString();
     const idVenta = Date.now();
 
-    // Registro para el historial de ventas React
     const venta = {
       id: idVenta,
       fecha,
@@ -105,17 +117,16 @@ function Ventas() {
       productoId: productoActual.id,
       producto: productoActual.nombre,
       precioUnitario: precio,
-      cantidad: cantidadVenta,
+      cantidad: cantidadConfirmada,
       total: totalVenta
     };
 
-    // Registro compatible con los reportes existentes
     const movimiento = {
       id: idVenta,
       tipo: 'venta',
       productoId: productoActual.id,
       productoNombre: productoActual.nombre,
-      cantidad: cantidadVenta,
+      cantidad: cantidadConfirmada,
       precioUnitario: precio,
       total: totalVenta,
       utilidad,
@@ -123,14 +134,12 @@ function Ventas() {
       fecha
     };
 
-    // Actualizar inventario
     productoActual.stock =
-      Number(productoActual.stock) - cantidadVenta;
+      Number(productoActual.stock) - cantidadConfirmada;
 
     ventas.push(venta);
     movimientos.unshift(movimiento);
 
-    // Guardar respaldo para poder restaurar si ocurre un error
     const claves = [
       CLAVES.productos,
       CLAVES.ventas,
@@ -144,22 +153,18 @@ function Ventas() {
     });
 
     try {
-      // Guardar los tres registros
       guardarDatos(CLAVES.productos, productosActualizados);
       guardarDatos(CLAVES.ventas, ventas);
       guardarDatos(CLAVES.movimientos, movimientos);
 
-      // Actualizar la interfaz
       setProductos(productosActualizados);
-      setCantidad(1);
+      setCantidad('1');
       setProductoId('');
       setMensaje('Venta registrada correctamente.');
 
-      // Avisar al historial de React
       window.dispatchEvent(new Event('ventaRegistrada'));
 
     } catch (error) {
-      // Restaurar los datos anteriores si falla el guardado
       claves.forEach(clave => {
         try {
           if (respaldos[clave] === null) {
@@ -172,21 +177,24 @@ function Ventas() {
         }
       });
 
-      setMensaje(
-        'Error al guardar la venta. No se pudo completar la operación.'
-      );
+      cargarProductos();
+      setMensaje('Error al guardar la venta. No se pudo completar la operación.');
     }
   };
 
   return (
-    <div>
+    <div className="panel-box">
       <h2>Registrar venta</h2>
 
-      <label>Producto</label>
+      <label htmlFor="productoVenta">Producto</label>
 
       <select
+        id="productoVenta"
         value={productoId}
-        onChange={e => setProductoId(e.target.value)}
+        onChange={e => {
+          setProductoId(e.target.value);
+          setMensaje('');
+        }}
       >
         <option value="">Seleccione un producto</option>
 
@@ -195,7 +203,7 @@ function Ventas() {
           .map(p => (
             <option key={p.id} value={p.id}>
               {p.nombre} - ${Number(p.precio).toFixed(2)}
-              (Stock: {p.stock})
+              {' '}(Stock: {p.stock})
             </option>
           ))}
       </select>
@@ -204,23 +212,32 @@ function Ventas() {
         Stock disponible: {productoSeleccionado?.stock ?? '—'}
       </p>
 
-      <label>Cantidad</label>
+      <label htmlFor="cantidadVenta">Cantidad</label>
 
       <input
+        id="cantidadVenta"
         type="number"
         min="1"
         step="1"
         value={cantidad}
-        onChange={e => setCantidad(e.target.value)}
+        onChange={e => {
+          setCantidad(e.target.value);
+          setMensaje('');
+        }}
       />
 
-      <h3>Total: ${total.toFixed(2)}</h3>
+      <h3>
+        Total: ${Number.isFinite(total) ? total.toFixed(2) : '0.00'}
+      </h3>
 
-      <button onClick={registrarVenta}>
+      <button
+        type="button"
+        onClick={registrarVenta}
+      >
         Confirmar venta
       </button>
 
-      <p>{mensaje}</p>
+      <p role="status">{mensaje}</p>
     </div>
   );
 }
