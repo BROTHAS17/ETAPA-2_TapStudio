@@ -1,38 +1,58 @@
+
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>La Tiendita · Sistema de inventario</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20261014-bootstrap">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>La Tiendita · Sistema de inventario</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=20261014-bootstrap">
 </head>
+
 <body>
 
 <!-- ===================== APP ===================== -->
 <div id="appShell" class="hidden">
+
   <div class="topbar">
     <div class="brand">
-      <span class="brand-mark"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9l1-5h14l1 5"/><path d="M3 9h18"/><path d="M5 9v10h14V9"/><path d="M9 19v-6h6v6"/></svg></span>
+      <span class="brand-mark">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 9l1-5h14l1 5"/>
+          <path d="M3 9h18"/>
+          <path d="M5 9v10h14V9"/>
+          <path d="M9 19v-6h6v6"/>
+        </svg>
+      </span>
+
       <div class="brand-text">
         <h1>La Tiendita</h1>
         <p>Sistema de inventario</p>
       </div>
     </div>
+
     <div class="who">
-      <span class="sync-pill" id="syncPill"><span class="dot neutral" id="syncDot"></span><span id="syncPillText">Cargando…</span></span>
+      <span class="sync-pill" id="syncPill">
+        <span class="dot neutral" id="syncDot"></span>
+        <span id="syncPillText">Cargando…</span>
+      </span>
+
       <div class="who-chip">
         <div class="name" id="whoName">—</div>
         <div class="role" id="whoRole">—</div>
       </div>
+
       <button class="btn btn-ghost btn-small" id="logoutBtn">Salir</button>
     </div>
   </div>
 
   <div class="layout">
+
     <nav class="sidebar" id="sidebarNav"></nav>
 
     <main id="mainArea">
@@ -43,12 +63,15 @@
           <h2 id="panelGreeting">Hola</h2>
           <p id="panelDate"></p>
         </div>
+
         <div class="kpi-grid" id="panelKpis"></div>
+
         <div class="two-col">
           <div class="panel-box">
             <h3>Movimientos recientes</h3>
             <ul class="mini-list" id="panelRecent"></ul>
           </div>
+
           <div class="panel-box">
             <h3>Stock bajo</h3>
             <ul class="mini-list" id="panelLowStock"></ul>
@@ -63,17 +86,31 @@
             <h2>Inventario</h2>
             <p>Catálogo de productos de la tienda</p>
           </div>
-          <button class="btn btn-accent" id="newProductBtn" data-admin-only style="width:auto;">+ Nuevo producto</button>
+
+          <button class="btn btn-accent" id="newProductBtn" data-admin-only style="width:auto;">
+            + Nuevo producto
+          </button>
         </div>
+
         <div class="toolbar">
           <input type="text" id="invSearch" placeholder="Buscar producto…">
-          <select id="invCategoria"><option value="">Todas las categorías</option></select>
+          <select id="invCategoria">
+            <option value="">Todas las categorías</option>
+          </select>
         </div>
+
         <div class="card-table-wrap u-scroll">
           <table id="invTable">
-            <thead><tr>
-              <th>Producto</th><th>Categoría</th><th>Stock</th><th data-admin-only>Costo</th><th>Precio</th><th data-admin-only>Acciones</th>
-            </tr></thead>
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Categoría</th>
+                <th>Stock</th>
+                <th data-admin-only>Costo</th>
+                <th>Precio</th>
+                <th data-admin-only>Acciones</th>
+              </tr>
+            </thead>
             <tbody id="invBody"></tbody>
           </table>
         </div>
@@ -85,34 +122,50 @@
           <h2>Compras</h2>
           <p>Registra entradas de mercancía y actualiza el costo promedio</p>
         </div>
+
         <form class="form-card" id="compraForm" novalidate>
           <h3>Nueva compra</h3>
+
           <div class="row g-3 mx-0">
             <div class="field col-12 col-md-6 col-lg-3">
               <label for="compraProducto">Producto</label>
               <select id="compraProducto"></select>
             </div>
+
             <div class="field col-12 col-md-6 col-lg-3">
               <label for="compraCantidad">Cantidad</label>
               <input type="number" id="compraCantidad" min="1" step="1" value="1">
             </div>
+
             <div class="field col-12 col-md-6 col-lg-3">
               <label for="compraCosto">Costo unitario</label>
               <input type="number" id="compraCosto" min="0" step="0.01">
             </div>
+
             <div class="field col-12 col-md-6 col-lg-3">
               <label for="compraProveedor">Proveedor (opcional)</label>
               <input type="text" id="compraProveedor" placeholder="Distribuidora Central">
             </div>
           </div>
+
           <div class="form-actions">
             <button type="submit" class="btn btn-accent">Registrar compra</button>
             <span class="inline-error" id="compraError"></span>
           </div>
         </form>
+
         <div class="card-table-wrap u-scroll">
           <table>
-            <thead><tr><th>Fecha</th><th>Producto</th><th>Cantidad</th><th>Costo unit.</th><th>Total</th><th>Proveedor</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Costo unit.</th>
+                <th>Total</th>
+                <th>Proveedor</th>
+              </tr>
+            </thead>
             <tbody id="comprasBody"></tbody>
           </table>
         </div>
@@ -120,34 +173,18 @@
 
       <!-- VENTAS -->
       <section class="view hidden" id="view-ventas">
-        <div class="view-head">
-          <h2>Ventas</h2>
-          <p>Registra una venta y descuenta el inventario</p>
-        </div>
-        <form class="form-card" id="ventaForm" novalidate>
-          <h3>Nueva venta</h3>
-          <div class="row g-3 mx-0">
-            <div class="field col-12 col-md-6 col-lg-4">
-              <label for="ventaProducto">Producto</label>
-              <select id="ventaProducto"></select>
-            </div>
-            <div class="field col-12 col-md-6 col-lg-4">
-              <label for="ventaCantidad">Cantidad</label>
-              <input type="number" id="ventaCantidad" min="1" step="1" value="1">
-            </div>
-            <div class="field col-12 col-md-6 col-lg-4">
-              <label for="ventaPrecio">Precio unitario</label>
-              <input type="number" id="ventaPrecio" min="0" step="0.01">
-            </div>
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn btn-accent">Registrar venta</button>
-            <span class="inline-error" id="ventaError"></span>
-          </div>
-        </form>
-        <div class="card-table-wrap u-scroll">
+        <div id="root"></div>
+
+        <!-- Elementos anteriores conservados para compatibilidad con script.js -->
+        <div hidden>
+          <form class="form-card" id="ventaForm" novalidate>
+            <select id="ventaProducto"></select>
+            <input type="number" id="ventaCantidad" min="1" step="1" value="1">
+            <input type="number" id="ventaPrecio" min="0" step="0.01">
+            <span id="ventaError"></span>
+          </form>
+
           <table>
-            <thead><tr><th>Fecha</th><th>Producto</th><th>Cantidad</th><th>Precio unit.</th><th>Total</th><th data-admin-only>Utilidad</th></tr></thead>
             <tbody id="ventasBody"></tbody>
           </table>
         </div>
@@ -159,16 +196,18 @@
           <h2>Alertas de stock</h2>
           <p>Productos en o por debajo de su stock mínimo</p>
         </div>
+
         <div class="alert-grid" id="alertGrid"></div>
       </section>
 
-      <!-- REPORTES -->
+      <!-- REPORTES: SE MANTIENE EN JAVASCRIPT TRADICIONAL -->
       <section class="view hidden" id="view-reportes" data-admin-only>
         <div class="view-head view-head-row">
           <div>
             <h2>Reportes</h2>
             <p>Resumen de la operación de la tienda</p>
           </div>
+
           <div class="segmented" id="rangeSeg">
             <button data-range="hoy">Hoy</button>
             <button data-range="semana">Semana</button>
@@ -176,15 +215,19 @@
             <button data-range="todo" class="active">Todo</button>
           </div>
         </div>
+
         <div class="kpi-grid" id="reporteKpis"></div>
+
         <div class="two-col">
           <div class="panel-box">
             <h3>Productos más vendidos</h3>
             <div class="bar-list" id="topProductos"></div>
           </div>
+
           <div class="panel-box">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
               <h3 style="margin:0;">Historial</h3>
+
               <div class="type-filter">
                 <select id="histTipo" style="padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);">
                   <option value="">Todos</option>
@@ -193,6 +236,7 @@
                 </select>
               </div>
             </div>
+
             <ul class="mini-list u-scroll" id="histList" style="max-height:340px;overflow-y:auto;"></ul>
           </div>
         </div>
@@ -210,36 +254,44 @@
 <div class="modal-overlay hidden" id="productModalOverlay">
   <div class="product-modal">
     <h3 id="productModalTitle">Nuevo producto</h3>
+
     <form id="productForm" novalidate>
       <div class="row g-3 mx-0">
         <div class="field col-12">
           <label for="pNombre">Nombre</label>
           <input type="text" id="pNombre" placeholder="Coca-Cola 600ml">
         </div>
+
         <div class="field col-12">
           <label for="pCategoria">Categoría</label>
           <input type="text" id="pCategoria" list="catList" placeholder="Bebidas">
           <datalist id="catList"></datalist>
         </div>
+
         <div class="field col-12 col-sm-6">
           <label for="pCosto">Costo</label>
           <input type="number" id="pCosto" min="0" step="0.01">
         </div>
+
         <div class="field col-12 col-sm-6">
           <label for="pPrecio">Precio de venta</label>
           <input type="number" id="pPrecio" min="0" step="0.01">
         </div>
+
         <div class="field col-12 col-sm-6">
           <label for="pStockMin">Stock mínimo</label>
           <input type="number" id="pStockMin" min="0" step="1">
         </div>
+
         <div class="field col-12 col-sm-6" id="pStockInicialWrap">
           <label for="pStockInicial">Stock inicial</label>
           <input type="number" id="pStockInicial" min="0" step="1" value="0">
         </div>
       </div>
+
       <p class="hint" id="pStockNote"></p>
       <p class="form-error" id="productError"></p>
+
       <div class="modal-foot">
         <button type="button" class="btn btn-ghost" id="productCancelBtn">Cancelar</button>
         <button type="submit" class="btn btn-accent">Guardar</button>
@@ -248,6 +300,11 @@
   </div>
 </div>
 
+<!-- Sistema original -->
 <script src="script.js?v=20261014-integration" defer></script>
+
+<!-- Montaje de Ventas en React -->
+<script type="module" src="/src/main.jsx"></script>
+
 </body>
 </html>
