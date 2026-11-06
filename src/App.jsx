@@ -1,11 +1,18 @@
 
 import React from 'react';
+import Ventas from './Ventas.jsx';
 
 function App() {
   return (
     <div>
-      <h1>TapStudio - Punto de Venta</h1>
-      <p>Módulo de ventas en React</p>
+      <header>
+        <h1>TapStudio</h1>
+        <p>Sistema de gestión de tienda</p>
+      </header>
+
+      <main>
+        <Ventas />
+      </main>
     </div>
   );
 }
