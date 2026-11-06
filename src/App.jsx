@@ -2,6 +2,7 @@
 import React from 'react';
 import Ventas from './Ventas.jsx';
 import HistorialVentas from './HistorialVentas.jsx';
+import Reportes from './Reportes.jsx';
 
 function App() {
   return (
@@ -13,7 +14,10 @@ function App() {
 
       <main>
         <Ventas />
+
         <HistorialVentas />
+
+        <Reportes />
       </main>
     </div>
   );
