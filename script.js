@@ -856,10 +856,34 @@
       document.querySelectorAll('#rangeSeg button').forEach(function(b){ b.classList.toggle('active', b===btn); });
       renderReportes();
     });
-    document.getElementById('histTipo').addEventListener('change', function(){
+       document.getElementById('histTipo').addEventListener('change', function(){
       state.histTipo = this.value;
       renderReportes();
     });
+
+    // Sincronizar el sistema original con los cambios realizados desde React
+    window.addEventListener('tienditaDatosActualizados', function(){
+      if(usingSharedDb) return;
+
+      try {
+        state.products = JSON.parse(
+          localStorage.getItem(STORE_PRODUCTS) || '[]'
+        );
+
+        state.movements = JSON.parse(
+          localStorage.getItem(STORE_MOVEMENTS) || '[]'
+        );
+
+        onDataChanged();
+      } catch(error) {
+        console.error(
+          'Error al actualizar los datos desde React:',
+          error
+        );
+      }
+    });
+
+    initDataLayer();
 
     initDataLayer();
 
