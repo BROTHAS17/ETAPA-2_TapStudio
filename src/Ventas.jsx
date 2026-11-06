@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import { CLAVES, leerDatos, guardarDatos } from './storage.js';
 
 function Ventas() {
   const [productos, setProductos] = useState([]);
@@ -7,17 +8,8 @@ function Ventas() {
   const [cantidad, setCantidad] = useState(1);
   const [mensaje, setMensaje] = useState('');
 
-  const leerStorage = (clave, valorInicial) => {
-    try {
-      const datos = JSON.parse(localStorage.getItem(clave) || JSON.stringify(valorInicial));
-      return datos;
-    } catch {
-      return valorInicial;
-    }
-  };
-
   useEffect(() => {
-    const datos = leerStorage('tiendita_productos', []);
+    const datos = leerDatos(CLAVES.productos, []);
     setProductos(Array.isArray(datos) ? datos : []);
   }, []);
 
@@ -32,6 +24,7 @@ function Ventas() {
   const registrarVenta = () => {
     const cantidadVenta = Number(cantidad);
 
+    // Validar producto y cantidad
     if (
       !productoSeleccionado ||
       !Number.isSafeInteger(cantidadVenta) ||
@@ -41,10 +34,11 @@ function Ventas() {
       return;
     }
 
-    const productosActualizados = leerStorage('tiendita_productos', []);
-    const ventas = leerStorage('tiendita_ventas', []);
-    const movimientos = leerStorage('tiendita_movimientos', []);
-    const sesion = leerStorage('tiendita_sesion', null);
+    // Leer los datos actuales
+    const productosActualizados = leerDatos(CLAVES.productos, []);
+    const ventas = leerDatos(CLAVES.ventas, []);
+    const movimientos = leerDatos(CLAVES.movimientos, []);
+    const sesion = leerDatos(CLAVES.sesion, null);
 
     if (
       !Array.isArray(productosActualizados) ||
@@ -55,22 +49,30 @@ function Ventas() {
       return;
     }
 
+    // Buscar nuevamente el producto
     const productoActual = productosActualizados.find(
       p => String(p.id) === String(productoId)
     );
 
-    if (!productoActual || Number(productoActual.stock) < cantidadVenta) {
+    // Validar existencias
+    if (
+      !productoActual ||
+      !Number.isFinite(Number(productoActual.stock)) ||
+      Number(productoActual.stock) < cantidadVenta
+    ) {
       setMensaje('No hay existencias suficientes.');
       return;
     }
 
+    // Validar sesión
     if (!sesion || !sesion.nombre || sesion.id == null) {
       setMensaje('Debe iniciar sesión para registrar una venta.');
       return;
     }
 
+    // Obtener precio y costo
     const precio = Number(productoActual.precio);
-    const costo = Number(productoActual.costo);
+    const costo = Number(productoActual.costo ?? 0);
 
     if (
       !Number.isFinite(precio) ||
@@ -82,7 +84,11 @@ function Ventas() {
       return;
     }
 
-    const totalVenta = Math.round(precio * cantidadVenta * 100) / 100;
+    // Calcular total y utilidad
+    const totalVenta = Math.round(
+      precio * cantidadVenta * 100
+    ) / 100;
+
     const utilidad = Math.round(
       (precio - costo) * cantidadVenta * 100
     ) / 100;
@@ -90,6 +96,7 @@ function Ventas() {
     const fecha = new Date().toISOString();
     const idVenta = Date.now();
 
+    // Registro para el historial de ventas React
     const venta = {
       id: idVenta,
       fecha,
@@ -102,6 +109,7 @@ function Ventas() {
       total: totalVenta
     };
 
+    // Registro compatible con los reportes existentes
     const movimiento = {
       id: idVenta,
       tipo: 'venta',
@@ -115,15 +123,18 @@ function Ventas() {
       fecha
     };
 
-    productoActual.stock = Number(productoActual.stock) - cantidadVenta;
+    // Actualizar inventario
+    productoActual.stock =
+      Number(productoActual.stock) - cantidadVenta;
 
     ventas.push(venta);
     movimientos.unshift(movimiento);
 
+    // Guardar respaldo para poder restaurar si ocurre un error
     const claves = [
-      'tiendita_productos',
-      'tiendita_ventas',
-      'tiendita_movimientos'
+      CLAVES.productos,
+      CLAVES.ventas,
+      CLAVES.movimientos
     ];
 
     const respaldos = {};
@@ -133,29 +144,22 @@ function Ventas() {
     });
 
     try {
-      localStorage.setItem(
-        'tiendita_productos',
-        JSON.stringify(productosActualizados)
-      );
+      // Guardar los tres registros
+      guardarDatos(CLAVES.productos, productosActualizados);
+      guardarDatos(CLAVES.ventas, ventas);
+      guardarDatos(CLAVES.movimientos, movimientos);
 
-      localStorage.setItem(
-        'tiendita_ventas',
-        JSON.stringify(ventas)
-      );
-
-      localStorage.setItem(
-        'tiendita_movimientos',
-        JSON.stringify(movimientos)
-      );
-
+      // Actualizar la interfaz
       setProductos(productosActualizados);
       setCantidad(1);
       setProductoId('');
       setMensaje('Venta registrada correctamente.');
 
+      // Avisar al historial de React
       window.dispatchEvent(new Event('ventaRegistrada'));
 
     } catch (error) {
+      // Restaurar los datos anteriores si falla el guardado
       claves.forEach(clave => {
         try {
           if (respaldos[clave] === null) {
@@ -168,7 +172,9 @@ function Ventas() {
         }
       });
 
-      setMensaje('Error al guardar la venta. No se pudo completar la operación.');
+      setMensaje(
+        'Error al guardar la venta. No se pudo completar la operación.'
+      );
     }
   };
 
@@ -177,6 +183,7 @@ function Ventas() {
       <h2>Registrar venta</h2>
 
       <label>Producto</label>
+
       <select
         value={productoId}
         onChange={e => setProductoId(e.target.value)}
@@ -198,6 +205,7 @@ function Ventas() {
       </p>
 
       <label>Cantidad</label>
+
       <input
         type="number"
         min="1"
