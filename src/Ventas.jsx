@@ -91,6 +91,7 @@ function Ventas() {
       setCantidad(1);
       setProductoId('');
       setMensaje('Venta registrada correctamente.');
+      window.dispatchEvent(new Event('ventaRegistrada'));
     } catch (error) {
       setMensaje('Error al guardar la venta.');
     }
