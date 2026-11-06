@@ -1,17 +1,23 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import Chart from 'chart.js/auto';
 import { CLAVES, leerDatos } from './storage.js';
 
 function Reportes() {
   const [movimientos, setMovimientos] = useState([]);
   const [periodo, setPeriodo] = useState('todo');
 
-  const cargarMovimientos = () => {
-    const datos = leerDatos(CLAVES.movimientos, []);
-    setMovimientos(Array.isArray(datos) ? datos : []);
-  };
+  const barrasRef = useRef(null);
+  const circularRef = useRef(null);
+  const barrasChart = useRef(null);
+  const circularChart = useRef(null);
 
   useEffect(() => {
+    const cargarMovimientos = () => {
+      const datos = leerDatos(CLAVES.movimientos, []);
+      setMovimientos(Array.isArray(datos) ? datos : []);
+    };
+
     cargarMovimientos();
 
     window.addEventListener(
@@ -27,33 +33,28 @@ function Reportes() {
     };
   }, []);
 
-  const obtenerFechaInicio = () => {
+  const movimientosFiltrados = useMemo(() => {
     const ahora = new Date();
 
+    let fechaInicio = new Date(0);
+
     if (periodo === 'hoy') {
-      return new Date(
+      fechaInicio = new Date(
         ahora.getFullYear(),
         ahora.getMonth(),
         ahora.getDate()
       );
+    } else if (periodo === 'semana') {
+      fechaInicio = new Date(Date.now() - 7 * 86400000);
+    } else if (periodo === 'mes') {
+      fechaInicio = new Date(Date.now() - 30 * 86400000);
     }
 
-    if (periodo === 'semana') {
-      return new Date(Date.now() - 7 * 86400000);
-    }
-
-    if (periodo === 'mes') {
-      return new Date(Date.now() - 30 * 86400000);
-    }
-
-    return new Date(0);
-  };
-
-  const fechaInicio = obtenerFechaInicio();
-
-  const movimientosFiltrados = movimientos.filter(m =>
-    new Date(m.fecha).getTime() >= fechaInicio.getTime()
-  );
+    return movimientos.filter(m => {
+      const fecha = new Date(m.fecha).getTime();
+      return Number.isFinite(fecha) && fecha >= fechaInicio.getTime();
+    });
+  }, [movimientos, periodo]);
 
   const ventas = movimientosFiltrados.filter(
     m => m.tipo === 'venta'
@@ -89,7 +90,7 @@ function Reportes() {
 
     if (!productosVendidos[id]) {
       productosVendidos[id] = {
-        nombre: venta.productoNombre,
+        nombre: venta.productoNombre || 'Producto sin nombre',
         cantidad: 0,
         total: 0
       };
@@ -104,7 +105,78 @@ function Reportes() {
     .slice(0, 5);
 
   const formatoMoneda = valor =>
-    '$' + Number(valor).toFixed(2);
+    '$' + Number(valor || 0).toFixed(2);
+
+  // Crear y actualizar las gráficas
+  useEffect(() => {
+    if (!barrasRef.current || !circularRef.current) return;
+
+    if (barrasChart.current) {
+      barrasChart.current.destroy();
+    }
+
+    if (circularChart.current) {
+      circularChart.current.destroy();
+    }
+
+    barrasChart.current = new Chart(barrasRef.current, {
+      type: 'bar',
+      data: {
+        labels: topProductos.map(p => p.nombre),
+        datasets: [{
+          label: 'Unidades vendidas',
+          data: topProductos.map(p => p.cantidad),
+          backgroundColor: '#6C63FF',
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              precision: 0
+            }
+          }
+        }
+      }
+    });
+
+    circularChart.current = new Chart(circularRef.current, {
+      type: 'doughnut',
+      data: {
+        labels: ['Ventas', 'Compras'],
+        datasets: [{
+          data: [totalVentas, totalCompras],
+          backgroundColor: ['#16A34A', '#F59E0B'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
+
+    return () => {
+      if (barrasChart.current) {
+        barrasChart.current.destroy();
+        barrasChart.current = null;
+      }
+
+      if (circularChart.current) {
+        circularChart.current.destroy();
+        circularChart.current = null;
+      }
+    };
+  }, [topProductos, totalVentas, totalCompras]);
 
   return (
     <section className="reportes">
@@ -169,6 +241,16 @@ function Reportes() {
           </tbody>
         </table>
       )}
+
+      <h3>Unidades vendidas por producto</h3>
+      <div style={{ position: 'relative', height: '300px' }}>
+        <canvas ref={barrasRef}></canvas>
+      </div>
+
+      <h3>Comparación de ventas y compras</h3>
+      <div style={{ position: 'relative', height: '300px' }}>
+        <canvas ref={circularRef}></canvas>
+      </div>
     </section>
   );
 }
