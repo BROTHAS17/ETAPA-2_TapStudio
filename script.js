@@ -888,17 +888,12 @@
       }
     });
 
-    // Inicializar la capa de datos una sola vez
-    initDataLayer();
+   // Inicializar la capa de datos una sola vez
+initDataLayer();
 
-
-    initDataLayer();
-
-    initDataLayer();
-
-    if(state.user){
-      enterApp();
-    }
+if(state.user){
+  enterApp();
+}
   }
 
   document.addEventListener('DOMContentLoaded', init);
