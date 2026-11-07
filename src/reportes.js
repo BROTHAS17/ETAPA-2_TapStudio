@@ -90,10 +90,11 @@ function actualizarGraficaVentas() {
 document.addEventListener('DOMContentLoaded', () => {
   actualizarGraficaVentas();
 
-  window.addEventListener(
-    'tienditaDatosActualizados',
-    actualizarGraficaVentas
-  );
+    window.addEventListener('reportesVistaMostrada', () => {
+    if (graficaVentas) {
+      graficaVentas.resize();
+    }
+  });
 
   window.addEventListener(
     'ventaRegistrada',
