@@ -134,8 +134,9 @@
   .nav-item{
     display:flex; align-items:center; gap:11px; padding:10px 12px; border-radius:var(--radius-s);
     background:none; border:none; text-align:left; color:var(--ink-soft); font-weight:500; font-size:0.9rem;
-    position:relative;
+    position:relative; text-decoration:none; cursor:pointer; font-family:inherit;
   }
+  .nav-item:hover{background:var(--surface-2); color:var(--ink); text-decoration:none;}
   .nav-item svg{flex-shrink:0; opacity:0.85;}
   .nav-item.active{background:var(--surface-2); color:var(--ink);}
   .nav-item.active svg{opacity:1; color:var(--accent);}
@@ -265,9 +266,11 @@
   }
   .product-modal{
     background:var(--surface); border-radius:var(--radius-l); padding:26px 26px 22px; width:100%; max-width:440px;
-    box-shadow:0 20px 60px -20px rgba(0,0,0,0.5); max-height:90dvh; overflow-y:auto;
+    box-shadow:0 20px 60px -20px rgba(0,0,0,0.5); max-height:90dvh; overflow-y:auto; border:1px solid var(--border);
   }
-  .product-modal h3{font-size:1.2rem; margin-bottom:18px;}
+  .product-modal.modal-wide{max-width:580px;}
+  .product-modal-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;}
+  .product-modal-head h3{font-size:1.3rem; margin:0;}
   .modal-foot{display:flex; justify-content:flex-end; gap:10px; margin-top:20px;}
   .modal-foot .btn{width:auto;}
 

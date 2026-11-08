@@ -2,231 +2,142 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Proveedores | La Tiendita</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>La Tiendita · Proveedores</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-  <link
-    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap"
-    rel="stylesheet"
-  >
-
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=20261021-proveedores">
-
-  <style>
-    .proveedores-main {
-      padding: 32px;
-      max-width: 1500px;
-      margin: 0 auto;
-    }
-
-    .proveedores-layout {
-      display: grid;
-      grid-template-columns: minmax(280px, 380px) 1fr;
-      gap: 24px;
-    }
-
-    .proveedores-panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-m);
-      padding: 24px;
-      box-shadow: var(--shadow-card);
-    }
-
-    .proveedores-panel h3 {
-      margin-bottom: 18px;
-    }
-
-    .proveedores-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .proveedores-table th,
-    .proveedores-table td {
-      padding: 12px 10px;
-      border-bottom: 1px solid var(--border);
-      text-align: left;
-    }
-
-    .proveedores-table th {
-      color: var(--ink-soft);
-      font-size: 0.85rem;
-    }
-
-    .alert {
-      padding: 10px 12px;
-      border-radius: var(--radius-s);
-      margin-bottom: 14px;
-    }
-
-    .alert-success {
-      background: var(--success-bg);
-      color: var(--success);
-    }
-
-    .alert-warning {
-      background: var(--warning-bg);
-      color: var(--warning);
-    }
-
-    .alert-danger {
-      background: var(--danger-bg);
-      color: var(--danger);
-    }
-
-    @media (max-width: 850px) {
-      .proveedores-main {
-        padding: 20px;
-      }
-
-      .proveedores-layout {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
 </head>
-
 <body>
 
+<div id="appShell">
+  <!-- BARRA SUPERIOR -->
   <header class="topbar">
     <div class="brand">
-      <span class="brand-mark">⌂</span>
-
+      <span class="brand-mark">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 9l1-5h14l1 5"></path>
+          <path d="M3 9h18"></path>
+          <path d="M5 9v10h14V9"></path>
+          <path d="M9 19v-6h6v6"></path>
+        </svg>
+      </span>
       <div class="brand-text">
         <h1>La Tiendita</h1>
-        <p>Gestión de proveedores</p>
+        <p>Sistema de inventario</p>
       </div>
     </div>
-
     <div class="who">
-      <a href="index.html" class="btn btn-ghost btn-small">
-        Volver al panel
-      </a>
+      <span class="sync-pill" id="syncPill">
+        <span class="dot neutral" id="syncDot"></span>
+        <span id="syncPillText">En línea</span>
+      </span>
+      <div class="who-chip">
+        <div class="name" id="whoName">—</div>
+        <div class="role" id="whoRole">Administrador/a</div>
+      </div>
+      <button class="btn btn-ghost btn-small" id="logoutBtn" type="button">Salir</button>
     </div>
   </header>
 
-  <main class="proveedores-main">
+  <!-- CUERPO PRINCIPAL CON BARRA LATERAL -->
+  <div class="layout">
+    <!-- BARRA LATERAL IZQUIERDA -->
+    <nav class="sidebar" id="sidebarNav"></nav>
 
-    <div class="view-head">
-      <h2>Proveedores</h2>
-      <p>Registra y administra los proveedores de la tienda.</p>
-    </div>
+    <!-- ÁREA DE CONTENIDO -->
+    <main id="mainArea">
+      <div class="view-head">
+        <h2>Proveedores</h2>
+        <p>Registra y administra los proveedores oficiales de la tienda.</p>
+      </div>
 
-    <div class="proveedores-layout">
+      <div class="two-col">
+        <!-- FORMULARIO DE PROVEEDOR -->
+        <section class="panel-box">
+          <h3 id="tituloFormulario" class="mb-3">Registrar proveedor</h3>
 
-      <section class="proveedores-panel">
-        <h3 id="tituloFormulario">Registrar proveedor</h3>
+          <form id="formProveedor" novalidate>
+            <input type="hidden" id="proveedorId">
 
-        <form id="formProveedor" novalidate>
-          <input type="hidden" id="proveedorId">
+            <div class="field">
+              <label for="nombreProveedor">Nombre del proveedor *</label>
+              <input type="text" id="nombreProveedor" maxlength="100" required>
+            </div>
 
-          <div class="field">
-            <label for="nombreProveedor">Nombre del proveedor *</label>
-            <input
-              type="text"
-              id="nombreProveedor"
-              maxlength="100"
-              required
-            >
+            <div class="field">
+              <label for="telefonoProveedor">Teléfono *</label>
+              <input type="tel" id="telefonoProveedor" maxlength="20" required>
+            </div>
+
+            <div class="field">
+              <label for="correoProveedor">Correo electrónico</label>
+              <input type="email" id="correoProveedor" maxlength="120">
+            </div>
+
+            <div class="field">
+              <label for="empresaProveedor">Empresa</label>
+              <input type="text" id="empresaProveedor" maxlength="100">
+            </div>
+
+            <div class="field">
+              <label for="direccionProveedor">Dirección</label>
+              <textarea id="direccionProveedor" rows="3" maxlength="250"></textarea>
+            </div>
+
+            <div id="mensajeProveedor" class="alert d-none mb-3"></div>
+
+            <div class="d-flex gap-2 mt-4">
+              <button type="submit" class="btn btn-accent flex-grow-1 py-2" id="btnGuardarProveedor">
+                Guardar proveedor
+              </button>
+              <button type="button" class="btn btn-ghost" id="btnCancelarEdicion">
+                Limpiar
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <!-- LISTA Y BÚSQUEDA DE PROVEEDORES -->
+        <section class="panel-box">
+          <h3 class="mb-3">Proveedores registrados</h3>
+
+          <div class="field mb-3">
+            <label for="buscarProveedor">Buscar proveedor</label>
+            <input type="search" id="buscarProveedor" placeholder="Buscar por nombre, empresa o teléfono">
           </div>
 
-          <div class="field">
-            <label for="telefonoProveedor">Teléfono *</label>
-            <input
-              type="tel"
-              id="telefonoProveedor"
-              maxlength="20"
-              required
-            >
+          <div id="estadoProveedores" class="hint mb-3 small text-muted"></div>
+
+          <div class="card-table-wrap u-scroll">
+            <table class="w-100">
+              <thead>
+                <tr>
+                  <th>Proveedor</th>
+                  <th>Contacto</th>
+                  <th>Empresa</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tablaProveedores"></tbody>
+            </table>
           </div>
+        </section>
+      </div>
+    </main>
+  </div>
 
-          <div class="field">
-            <label for="correoProveedor">Correo electrónico</label>
-            <input
-              type="email"
-              id="correoProveedor"
-              maxlength="120"
-            >
-          </div>
+  <!-- NAVEGACIÓN MÓVIL INFERIOR -->
+  <nav class="bottom-tabs" id="bottomNav"></nav>
+</div>
 
-          <div class="field">
-            <label for="empresaProveedor">Empresa</label>
-            <input
-              type="text"
-              id="empresaProveedor"
-              maxlength="100"
-            >
-          </div>
-
-          <div class="field">
-            <label for="direccionProveedor">Dirección</label>
-            <textarea
-              id="direccionProveedor"
-              rows="3"
-              maxlength="250"
-            ></textarea>
-          </div>
-
-          <div id="mensajeProveedor" class="alert d-none"></div>
-
-          <button
-            type="submit"
-            class="btn btn-accent"
-            id="btnGuardarProveedor"
-          >
-            Guardar proveedor
-          </button>
-
-          <button
-            type="button"
-            class="btn btn-ghost"
-            id="btnCancelarEdicion"
-          >
-            Limpiar
-          </button>
-        </form>
-      </section>
-
-      <section class="proveedores-panel">
-        <h3>Proveedores registrados</h3>
-
-        <div class="field">
-          <label for="buscarProveedor">Buscar proveedor</label>
-          <input
-            type="search"
-            id="buscarProveedor"
-            placeholder="Buscar por nombre, empresa o teléfono"
-          >
-        </div>
-
-        <div id="estadoProveedores" class="hint"></div>
-
-        <div class="u-scroll">
-          <table class="proveedores-table">
-            <thead>
-              <tr>
-                <th>Proveedor</th>
-                <th>Contacto</th>
-                <th>Empresa</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-
-            <tbody id="tablaProveedores"></tbody>
-          </table>
-        </div>
-      </section>
-
-    </div>
-  </main>
-
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="js/proveedores.js?v=20261021-sweetalert"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="js/sidebar.js"></script>
+<script src="js/proveedores.js?v=20261021-sweetalert"></script>
 
 </body>
 </html>

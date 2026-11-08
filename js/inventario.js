@@ -90,6 +90,14 @@ function iniciarInventario() {
                 JSON.stringify(productos)
             );
 
+            if (typeof window !== "undefined") {
+                window.dispatchEvent(
+                    new CustomEvent("tienditaDatosActualizados", {
+                        detail: { clave: LS_PRODUCTOS }
+                    })
+                );
+            }
+
             return true;
         } catch (error) {
             console.error("Error al guardar el inventario:", error);
@@ -355,4 +363,17 @@ function iniciarInventario() {
 
     // Carga inicial del módulo.
     refrescarInventario();
+
+    // Sincronización en tiempo real con React y otras pestañas
+    window.addEventListener("tienditaDatosActualizados", event => {
+        if (!event.detail || event.detail.clave === LS_PRODUCTOS) {
+            refrescarInventario();
+        }
+    });
+
+    window.addEventListener("storage", event => {
+        if (event.key === LS_PRODUCTOS) {
+            refrescarInventario();
+        }
+    });
 }

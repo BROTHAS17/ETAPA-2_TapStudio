@@ -4,24 +4,27 @@
   /* ============ ICONOS ============ */
   var ICONS = {
     panel:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="7" height="7" rx="1.4"/><rect x="11" y="2" width="7" height="7" rx="1.4"/><rect x="2" y="11" width="7" height="7" rx="1.4"/><rect x="11" y="11" width="7" height="7" rx="1.4"/></svg>',
+    productos:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 9.5l-6-6H3v7.5l6 6a2 2 0 0 0 2.8 0l4.7-4.7a2 2 0 0 0 0-2.8Z"/><circle cx="6.5" cy="6.5" r="1.5"/></svg>',
     inventario:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 6l7-4 7 4-7 4-7-4Z"/><path d="M3 6v8l7 4 7-4V6"/><path d="M10 10v8"/></svg>',
     compras:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v10"/><path d="M5 8l5 5 5-5"/><path d="M3 17h14"/></svg>',
     ventas:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 18V8"/><path d="M5 12l5-5 5 5"/><path d="M3 3h14"/></svg>',
     alertas:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2a4 4 0 0 0-4 4v2.5c0 1.2-.5 2.3-1.4 3.1L4 12h12l-.6-.4A4.3 4.3 0 0 1 14 8.5V6a4 4 0 0 0-4-4Z"/><path d="M8 15a2 2 0 0 0 4 0"/></svg>',
     reportes:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17V10"/><path d="M9 17V5"/><path d="M15 17v-8"/></svg>',
+    proveedores:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 18v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/></svg>',
     edit:'<svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 3.5l3 3L7 16H4v-3l9.5-9.5Z"/></svg>',
     trash:'<svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h12"/><path d="M8 6V4h4v2"/><path d="M6 6l1 10h6l1-10"/></svg>'
   };
 
   var NAV_ITEMS = [
-  {key:'panel', label:'Panel', icon:ICONS.panel, roles:['admin','vendedor']},
-  {key:'inventario', label:'Inventario', icon:ICONS.inventario, roles:['admin','vendedor']},
-  {key:'compras', label:'Compras', icon:ICONS.compras, roles:['admin']},
-  {key:'ventas', label:'Ventas', icon:ICONS.ventas, roles:['admin','vendedor']},
-  {key:'alertas', label:'Alertas', icon:ICONS.alertas, roles:['admin','vendedor']},
-  {key:'reportes', label:'Reportes', icon:ICONS.reportes, roles:['admin']},
-  {key:'proveedores', label:'Proveedores', icon:ICONS.inventario, roles:['admin','vendedor']}
-];
+    {key:'panel', label:'Panel', icon:ICONS.panel, roles:['admin','vendedor']},
+    {key:'productos', label:'Productos', url:'productos.html', icon:ICONS.productos, roles:['admin','vendedor']},
+    {key:'inventario', label:'Inventario', url:'inventario.html', icon:ICONS.inventario, roles:['admin','vendedor']},
+    {key:'compras', label:'Compras', url:'compras.html', icon:ICONS.compras, roles:['admin']},
+    {key:'ventas', label:'Ventas', url:'ventas.html', icon:ICONS.ventas, roles:['admin','vendedor']},
+    {key:'alertas', label:'Alertas', icon:ICONS.alertas, roles:['admin','vendedor']},
+    {key:'reportes', label:'Reportes', url:'reportes.html', icon:ICONS.reportes, roles:['admin']},
+    {key:'proveedores', label:'Proveedores', url:'proveedores.html', icon:ICONS.proveedores, roles:['admin','vendedor']}
+  ];
 
   /* ============ ESTADO ============ */
   var STORE_PRODUCTS = 'tiendita_productos';
@@ -562,20 +565,29 @@
   function isAdmin(){ return state.user && state.user.rol === 'admin'; }
 
   function buildNav(container){
+    if(!container) return;
     container.innerHTML = '';
     var role = state.user ? state.user.rol : 'vendedor';
     NAV_ITEMS.filter(function(it){ return it.roles.indexOf(role) !== -1; }).forEach(function(it){
-      var btn = document.createElement('button');
-      btn.className = 'nav-item' + (state.currentView === it.key ? ' active' : '');
-      btn.dataset.view = it.key;
+      var item = document.createElement(it.url ? 'a' : 'button');
+      item.className = 'nav-item' + (state.currentView === it.key ? ' active' : '');
+      item.dataset.view = it.key;
+      if(it.url){
+        item.href = it.url;
+      }
       var badge = '';
       if(it.key === 'alertas'){
         var n = lowStockProducts().length;
         if(n > 0) badge = '<span class="nav-badge">' + n + '</span>';
       }
-      btn.innerHTML = it.icon + '<span>' + it.label + '</span>' + badge;
-      btn.addEventListener('click', function(){ setView(it.key); });
-      container.appendChild(btn);
+      item.innerHTML = it.icon + '<span>' + it.label + '</span>' + badge;
+      if(!it.url){
+        item.addEventListener('click', function(e){
+          e.preventDefault();
+          setView(it.key);
+        });
+      }
+      container.appendChild(item);
     });
   }
   function renderNav(){
@@ -1058,6 +1070,28 @@ async function confirmarEliminar(nombre) {
     document.getElementById('histTipo').addEventListener('change', function(){
       state.histTipo = this.value;
       renderReportes();
+    });
+
+    // Sincronizar el sistema original con las operaciones registradas desde React (Compras / Ventas)
+    window.addEventListener('tienditaDatosActualizados', function(){
+      if (usingSharedDb) return;
+
+      try {
+        state.products = JSON.parse(
+          localStorage.getItem(STORE_PRODUCTS) || '[]'
+        );
+
+        state.movements = JSON.parse(
+          localStorage.getItem(STORE_MOVEMENTS) || '[]'
+        );
+
+        onDataChanged();
+      } catch (error) {
+        console.error(
+          'Error al actualizar los datos desde React:',
+          error
+        );
+      }
     });
 
     initDataLayer();

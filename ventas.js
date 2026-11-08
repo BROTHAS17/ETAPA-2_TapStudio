@@ -1,395 +1,491 @@
+/**
+ * ventas.js
+ * Módulo de Punto de Venta en React 18 para La Tiendita.
+ * Cumple con la distribución de trabajo del Integrante 3:
+ * - Selección de producto y validación en tiempo real de existencias.
+ * - Descuento automático de inventario y prevención de venta mayor al stock.
+ * - Resumen reactivo de cobro e historial de operaciones.
+ * - Disparo de eventos para sincronización con Reportes e Inventario.
+ * - Cero emojis y cero tecnicismos para el usuario.
+ */
+
 (function () {
   "use strict";
 
   const LS_PRODUCTOS = "tiendita_productos";
   const LS_VENTAS = "tiendita_ventas";
+  const LS_MOVIMIENTOS = "tiendita_movimientos";
   const LS_SESION = "tiendita_sesion";
 
-  const formVenta = document.getElementById("formVenta");
-  const selectProducto = document.getElementById("selectProducto");
-  const infoStock = document.getElementById("infoStock");
-  const inputCantidad = document.getElementById("inputCantidad");
-  const advertenciaStock = document.getElementById("advertenciaStock");
-  const btnConfirmarVenta = document.getElementById("btnConfirmarVenta");
-  const mensajeResultado = document.getElementById("mensajeResultado");
-  const estadoCarga = document.getElementById("estadoCarga");
-  const resumenProducto = document.getElementById("resumenProducto");
-  const resumenPrecio = document.getElementById("resumenPrecio");
-  const resumenCantidad = document.getElementById("resumenCantidad");
-  const resumenTotal = document.getElementById("resumenTotal");
-  const nombreVendedor = document.getElementById("nombreVendedor");
+  const mountNode = document.getElementById("ventas-root");
 
-  let productosDisponibles = [];
-  let ventaEnProceso = false;
+  if (!mountNode || !window.React || !window.ReactDOM) {
+    if (mountNode) {
+      mountNode.innerHTML =
+        '<div class="alert alert-danger m-3">No se pudo inicializar el módulo de ventas. Verifique las dependencias del sistema.</div>';
+    }
+    return;
+  }
 
-  // Lee una lista de localStorage y comprueba que sea un arreglo.
+  const { createElement: h, useState, useEffect, useCallback } = window.React;
+
   function leerLista(clave) {
     try {
-      const contenido = localStorage.getItem(clave);
-
-      if (contenido === null) {
-        return [];
-      }
-
-      const datos = JSON.parse(contenido);
-      return Array.isArray(datos) ? datos : [];
-    } catch (error) {
-      console.error(`No se pudo leer ${clave}:`, error);
+      const data = localStorage.getItem(clave);
+      if (data === null) return [];
+      const parsed = JSON.parse(data);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      console.error(`Error al leer ${clave}:`, e);
       return [];
     }
   }
 
-  // Guarda una lista. Si falla, el error se comunica a quien la invoca.
-  function guardarLista(clave, lista) {
-    localStorage.setItem(clave, JSON.stringify(lista));
+  function moneda(val) {
+    const num = Number(val);
+    return "$" + (Number.isFinite(num) ? num : 0).toFixed(2);
   }
 
-  function formatearMoneda(valor) {
-    const numero = Number(valor);
-    return "$" + (Number.isFinite(numero) ? numero : 0).toFixed(2);
-  }
-
-  function obtenerSesion() {
-    try {
-      const sesion = JSON.parse(localStorage.getItem(LS_SESION));
-
-      if (
-        !sesion ||
-        typeof sesion !== "object" ||
-        !sesion.nombre ||
-        sesion.id === undefined ||
-        sesion.id === null
-      ) {
-        return null;
-      }
-
-      return sesion;
-    } catch (error) {
-      return null;
-    }
-  }
-
-  function obtenerProductoSeleccionado() {
-    const id = Number(selectProducto.value);
-
-    if (!selectProducto.value) {
-      return null;
-    }
-
-    return (
-      productosDisponibles.find(
-        producto => Number(producto.id) === id
-      ) || null
-    );
-  }
-
-  function mostrarMensaje(texto, tipo) {
-    mensajeResultado.textContent = texto;
-    mensajeResultado.className =
-      "mensaje " + (tipo === "error" ? "error" : "exito");
-  }
-
-  function limpiarMensaje() {
-    mensajeResultado.textContent = "";
-    mensajeResultado.className = "mensaje";
-  }
-
-  function mostrarAdvertencia(texto) {
-    advertenciaStock.textContent = texto;
-    advertenciaStock.classList.add("visible");
-  }
-
-  function ocultarAdvertencia() {
-    advertenciaStock.textContent = "";
-    advertenciaStock.classList.remove("visible");
-  }
-
-  function productoValido(producto) {
-    if (!producto || typeof producto !== "object") {
-      return false;
-    }
-
-    const precio = Number(producto.precio);
-    const stock = Number(producto.stock);
-
-    return (
-      producto.id !== undefined &&
-      producto.id !== null &&
-      typeof producto.nombre === "string" &&
-      producto.nombre.trim() !== "" &&
-      Number.isFinite(precio) &&
-      precio > 0 &&
-      Number.isSafeInteger(stock) &&
-      stock >= 0
-    );
-  }
-
-  function renderizarProductos() {
-    selectProducto.innerHTML = "";
-
-    const disponibles = productosDisponibles.filter(producto =>
-      productoValido(producto) && Number(producto.stock) > 0
-    );
-
-    if (!disponibles.length) {
-      const opcion = document.createElement("option");
-      opcion.value = "";
-      opcion.disabled = true;
-      opcion.selected = true;
-      opcion.textContent = "No hay productos con existencias disponibles";
-      selectProducto.appendChild(opcion);
-      return;
-    }
-
-    const opcionInicial = document.createElement("option");
-    opcionInicial.value = "";
-    opcionInicial.disabled = true;
-    opcionInicial.selected = true;
-    opcionInicial.textContent = "Seleccione un producto…";
-    selectProducto.appendChild(opcionInicial);
-
-    disponibles.forEach(producto => {
-      const opcion = document.createElement("option");
-      opcion.value = String(producto.id);
-      opcion.textContent =
-        `${producto.nombre} — ${formatearMoneda(producto.precio)} ` +
-        `(stock: ${producto.stock})`;
-
-      selectProducto.appendChild(opcion);
+  function formatearFecha(iso) {
+    const f = new Date(iso);
+    if (Number.isNaN(f.getTime())) return "—";
+    return f.toLocaleDateString("es-SV", {
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit"
     });
   }
 
-  function cargarProductos() {
-    estadoCarga.textContent = "";
-
-    productosDisponibles = leerLista(LS_PRODUCTOS);
-    renderizarProductos();
-    actualizarResumenYValidacion();
-  }
-
-  function actualizarResumenYValidacion() {
-    const producto = obtenerProductoSeleccionado();
-    const cantidad = Number(inputCantidad.value);
-
-    limpiarMensaje();
-    btnConfirmarVenta.disabled = true;
-
-    if (!producto || !productoValido(producto)) {
-      resumenProducto.textContent = "—";
-      resumenPrecio.textContent = formatearMoneda(0);
-      resumenCantidad.textContent = "0";
-      resumenTotal.textContent = formatearMoneda(0);
-      infoStock.textContent = "Existencias disponibles: —";
-      ocultarAdvertencia();
-      return;
-    }
-
-    const precio = Number(producto.precio);
-    const stock = Number(producto.stock);
-    const cantidadValida =
-      inputCantidad.value.trim() !== "" &&
-      Number.isSafeInteger(cantidad) &&
-      cantidad >= 1;
-
-    infoStock.textContent = `Existencias disponibles: ${stock}`;
-    resumenProducto.textContent = producto.nombre;
-    resumenPrecio.textContent = formatearMoneda(precio);
-    resumenCantidad.textContent = cantidadValida ? String(cantidad) : "0";
-    resumenTotal.textContent = formatearMoneda(
-      cantidadValida ? precio * cantidad : 0
-    );
-
-    if (!cantidadValida) {
-      mostrarAdvertencia(
-        "Ingrese una cantidad válida (entero mayor o igual a 1)."
-      );
-      return;
-    }
-    if (cantidad > stock) {
-    mostrarAdvertencia(
-        `La cantidad solicitada (${cantidad}) supera el stock disponible (${stock}).`
-    );
-    btnConfirmarVenta.disabled = ventaEnProceso;
-    return;
-}
-    ocultarAdvertencia();
-    btnConfirmarVenta.disabled = ventaEnProceso;
-  }
-
-  function restaurarDato(clave, contenidoOriginal) {
-    if (contenidoOriginal === null) {
-      localStorage.removeItem(clave);
-    } else {
-      localStorage.setItem(clave, contenidoOriginal);
-    }
-  }
-
-  function confirmarVenta(evento) {
-    evento.preventDefault();
-
-    if (ventaEnProceso) {
-      return;
-    }
-
-    const sesion = obtenerSesion();
-
-    if (!sesion) {
-      window.location.href = "MiTiendita/login.html";
-      return;
-    }
-
-    const productoSeleccionado = obtenerProductoSeleccionado();
-    const cantidad = Number(inputCantidad.value);
-
-    if (!productoSeleccionado || !Number.isSafeInteger(cantidad) || inputCantidad.value.trim() === "" || cantidad < 1) {
-    if (typeof mostrarError === "function") {
-        mostrarError("Seleccione un producto e ingrese una cantidad válida.", "Datos inválidos");
-    } else {
-        mostrarMensaje("Seleccione un producto e ingrese una cantidad válida.", "error");
-    }
-    actualizarResumenYValidacion();
-    return;
-}
-    ventaEnProceso = true;
-    btnConfirmarVenta.disabled = true;
-    limpiarMensaje();
-
-    // Conserva el contenido original para intentar restaurarlo
-    // si alguno de los guardados falla.
-    let productosOriginales = null;
-    let ventasOriginales = null;
-    let guardadoIniciado = false;
-
+  function obtenerSesionUsuario() {
     try {
-      productosOriginales = localStorage.getItem(LS_PRODUCTOS);
-      ventasOriginales = localStorage.getItem(LS_VENTAS);
-
-      const productos = leerLista(LS_PRODUCTOS);
-      const ventas = leerLista(LS_VENTAS);
-
-      const productoActual = productos.find(
-        producto =>
-          Number(producto.id) === Number(productoSeleccionado.id)
-      );
-
-      // Se vuelve a validar con los datos almacenados al confirmar.
-      if (!productoValido(productoActual)) {
-        throw new Error(
-          "El producto ya no existe o sus datos son inválidos. Recargue la pantalla."
-        );
-      }
-
-      const stockActual = Number(productoActual.stock);
-      const precioActual = Number(productoActual.precio);
-      const total = precioActual * cantidad;
-      if (stockActual < cantidad) {
-    if (typeof mostrarError === "function") {
-        mostrarError(
-            `Solicitaste ${cantidad} unidades, pero solo hay ${stockActual} disponibles.`,
-            "Stock insuficiente"
-        );
-    } else {
-        mostrarMensaje(
-            `Stock insuficiente. Existencias actuales: ${stockActual}.`,
-            "error"
-        );
+      const sesion = JSON.parse(localStorage.getItem(LS_SESION));
+      if (sesion && sesion.nombre) return sesion;
+      return { nombre: "Vendedor de Turno", rol: "vendedor", id: 1 };
+    } catch {
+      return { nombre: "Vendedor de Turno", rol: "vendedor", id: 1 };
     }
-    return;
-}
+  }
 
-      const venta = {
-        id: Date.now(),
-        fecha: new Date().toISOString(),
-        usuario: sesion.nombre,
-        usuarioId: sesion.id,
-        productoId: productoActual.id,
-        producto: productoActual.nombre,
-        precioUnitario: precioActual,
-        cantidad: cantidad,
-        total: total
-      };
+  function FormularioVenta({
+    productos,
+    productoSeleccionado,
+    productoId,
+    setProductoId,
+    cantidad,
+    setCantidad,
+    mensaje,
+    enviando,
+    onSubmit
+  }) {
+    const stockDisponible = productoSeleccionado ? Number(productoSeleccionado.stock || 0) : 0;
+    const cantidadNum = Number(cantidad);
+    const superaStock = productoSeleccionado && cantidadNum > stockDisponible;
+    const puedeVender =
+      Boolean(productoSeleccionado) &&
+      Number.isSafeInteger(cantidadNum) &&
+      cantidadNum >= 1 &&
+      !superaStock &&
+      stockDisponible > 0 &&
+      !enviando;
 
-      // Prepara ambos cambios antes de guardarlos.
-      productoActual.stock = stockActual - cantidad;
-      ventas.push(venta);
-
-      guardadoIniciado = true;
-
-      // Si el segundo guardado falla, se intenta restaurar el primero.
-      guardarLista(LS_PRODUCTOS, productos);
-      guardarLista(LS_VENTAS, ventas);
-
-      mostrarMensaje(
-    `Venta registrada: ${cantidad} × ${productoActual.nombre} = ${formatearMoneda(total)}.`,
-    "exito"
-);
-
-if (typeof mostrarExito === "function") {
-    mostrarExito(
-        `Se vendieron ${cantidad} unidades de ${productoActual.nombre} por ${formatearMoneda(total)}.`,
-        "¡Venta registrada!"
+    return h(
+      "section",
+      { className: "panel-box" },
+      h("h3", { className: "mb-3" }, "Registrar venta"),
+      h(
+        "form",
+        { onSubmit, noValidate: true },
+        h(
+          "div",
+          { className: "field" },
+          h("label", { htmlFor: "selectProducto" }, "Producto *"),
+          h(
+            "select",
+            {
+              id: "selectProducto",
+              value: productoId,
+              onChange: e => setProductoId(e.target.value),
+              required: true
+            },
+            h(
+              "option",
+              { value: "" },
+              productos.length ? "Selecciona un producto" : "No hay productos disponibles"
+            ),
+            productos.map(p =>
+              h(
+                "option",
+                { key: String(p.id), value: String(p.id), disabled: Number(p.stock) <= 0 },
+                `${p.nombre} — ${moneda(p.precio)} (Existencias: ${p.stock ?? 0})`
+              )
+            )
+          ),
+          h(
+            "div",
+            { className: "small text-muted mt-1" },
+            `Existencias disponibles: ${productoSeleccionado ? stockDisponible : "—"}`
+          )
+        ),
+        h(
+          "div",
+          { className: "field" },
+          h("label", { htmlFor: "inputCantidad" }, "Cantidad *"),
+          h("input", {
+            type: "number",
+            id: "inputCantidad",
+            min: "1",
+            max: stockDisponible > 0 ? String(stockDisponible) : undefined,
+            step: "1",
+            value: cantidad,
+            onChange: e => setCantidad(e.target.value),
+            required: true
+          })
+        ),
+        superaStock &&
+          h(
+            "div",
+            { className: "alert alert-warning py-2 px-3 small my-2" },
+            `La cantidad ingresada (${cantidadNum}) supera las existencias disponibles (${stockDisponible}).`
+          ),
+        mensaje &&
+          mensaje.texto &&
+          h(
+            "div",
+            { className: `alert alert-${mensaje.tipo} py-2 px-3 small my-2` },
+            mensaje.texto
+          ),
+        h(
+          "button",
+          {
+            type: "submit",
+            id: "btnConfirmarVenta",
+            className: "btn btn-accent w-100 py-2 mt-3",
+            disabled: !puedeVender
+          },
+          enviando ? "Procesando venta..." : "Confirmar venta"
+        )
+      )
     );
-}
+  }
 
-      formVenta.reset();
-      inputCantidad.value = "1";
+  function ResumenCobro({ productoSeleccionado, cantidad, sesion }) {
+    const cantidadNum = Number(cantidad);
+    const precioUnitario = productoSeleccionado ? Number(productoSeleccionado.precio || 0) : 0;
+    const esCantidadValida = Number.isSafeInteger(cantidadNum) && cantidadNum >= 1;
+    const total = productoSeleccionado && esCantidadValida ? precioUnitario * cantidadNum : 0;
 
-      cargarProductos();
-    } catch (error) {
-      console.error("Error al registrar la venta:", error);
+    return h(
+      "section",
+      { className: "panel-box d-flex flex-column justify-content-between" },
+      h(
+        "div",
+        null,
+        h("h3", { className: "mb-3 border-bottom pb-2" }, "Resumen de cobro"),
+        h(
+          "div",
+          { className: "d-flex justify-content-between py-2 border-bottom" },
+          h("span", { className: "text-secondary" }, "Producto:"),
+          h("strong", { className: "text-end" }, productoSeleccionado ? productoSeleccionado.nombre : "—")
+        ),
+        h(
+          "div",
+          { className: "d-flex justify-content-between py-2 border-bottom" },
+          h("span", { className: "text-secondary" }, "Precio unitario:"),
+          h("span", null, moneda(precioUnitario))
+        ),
+        h(
+          "div",
+          { className: "d-flex justify-content-between py-2 border-bottom" },
+          h("span", { className: "text-secondary" }, "Cantidad:"),
+          h("span", null, esCantidadValida ? String(cantidadNum) : "0")
+        ),
+        h(
+          "div",
+          { className: "d-flex justify-content-between align-items-baseline pt-4 mt-3 border-top border-2" },
+          h("span", { className: "fs-5 fw-semibold" }, "Total a cobrar:"),
+          h(
+            "span",
+            { className: "display-6 fw-bold", style: { color: "var(--accent-ink)" } },
+            moneda(total)
+          )
+        )
+      ),
+      h(
+        "div",
+        { className: "text-end text-muted small mt-4 pt-3 border-top" },
+        "Atendido por: ",
+        h("strong", { className: "text-dark" }, sesion.nombre || "Usuario")
+      )
+    );
+  }
 
-      if (guardadoIniciado) {
-        try {
-          restaurarDato(LS_PRODUCTOS, productosOriginales);
-          restaurarDato(LS_VENTAS, ventasOriginales);
-        } catch (errorRestauracion) {
-          console.error(
-            "No fue posible restaurar todos los datos originales:",
-            errorRestauracion
-          );
+  function HistorialVentas({ ventas }) {
+    return h(
+      "section",
+      { className: "panel-box mt-4" },
+      h("h3", { className: "mb-3" }, "Historial de ventas registradas"),
+      h(
+        "div",
+        { className: "card-table-wrap u-scroll" },
+        h(
+          "table",
+          { className: "w-100" },
+          h(
+            "thead",
+            null,
+            h(
+              "tr",
+              null,
+              h("th", null, "Fecha"),
+              h("th", null, "Producto"),
+              h("th", null, "Cant."),
+              h("th", null, "Precio U."),
+              h("th", null, "Total"),
+              h("th", null, "Vendedor")
+            )
+          ),
+          h(
+            "tbody",
+            null,
+            ventas.length === 0
+              ? h(
+                  "tr",
+                  null,
+                  h(
+                    "td",
+                    { colSpan: 6, className: "text-center py-4 text-muted" },
+                    "No hay ventas registradas aún."
+                  )
+                )
+              : ventas
+                  .slice()
+                  .reverse()
+                  .slice(0, 25)
+                  .map((venta, idx) =>
+                    h(
+                      "tr",
+                      { key: venta.id || idx },
+                      h("td", null, formatearFecha(venta.fecha)),
+                      h("td", null, venta.producto || "—"),
+                      h("td", null, venta.cantidad || 0),
+                      h("td", null, moneda(venta.precioUnitario || 0)),
+                      h("td", { className: "fw-semibold" }, moneda(venta.total || 0)),
+                      h("td", null, venta.usuario || "—")
+                    )
+                  )
+          )
+        )
+      ),
+      h(
+        "p",
+        { className: "small text-muted mt-3 mb-0" },
+        `Total de ventas registradas: ${ventas.length}`
+      )
+    );
+  }
 
-          mostrarMensaje(
-            "Ocurrió un error al guardar y no se pudo confirmar la restauración de los datos. Verifique el inventario y el historial de ventas antes de continuar.",
-            "error"
-          );
+  function AplicacionVentas() {
+    const [productos, setProductos] = useState([]);
+    const [ventas, setVentas] = useState([]);
+    const [productoId, setProductoId] = useState("");
+    const [cantidad, setCantidad] = useState("1");
+    const [mensaje, setMensaje] = useState(null);
+    const [enviando, setEnviando] = useState(false);
+    const sesion = obtenerSesionUsuario();
 
-          cargarProductos();
-          return;
-        }
+    const cargarDatos = useCallback(() => {
+      setProductos(leerLista(LS_PRODUCTOS));
+      setVentas(leerLista(LS_VENTAS));
+    }, []);
+
+    useEffect(() => {
+      cargarDatos();
+
+      const handleActualizacion = () => cargarDatos();
+      window.addEventListener("tienditaDatosActualizados", handleActualizacion);
+      window.addEventListener("ventaRegistrada", handleActualizacion);
+      window.addEventListener("storage", handleActualizacion);
+
+      return () => {
+        window.removeEventListener("tienditaDatosActualizados", handleActualizacion);
+        window.removeEventListener("ventaRegistrada", handleActualizacion);
+        window.removeEventListener("storage", handleActualizacion);
+      };
+    }, [cargarDatos]);
+
+    const productoSeleccionado = productos.find(p => String(p.id) === String(productoId)) || null;
+
+    async function handleConfirmarVenta(e) {
+      e.preventDefault();
+      setMensaje(null);
+
+      if (!productoSeleccionado) {
+        setMensaje({ tipo: "warning", texto: "Selecciona un producto de la lista." });
+        return;
       }
 
-      mostrarMensaje(
-        error.message || "No se pudo registrar la venta.",
-        "error"
-      );
+      const cantidadNum = Number(cantidad);
+      if (!Number.isSafeInteger(cantidadNum) || cantidadNum < 1) {
+        setMensaje({ tipo: "warning", texto: "Ingresa una cantidad entera válida (mínimo 1)." });
+        return;
+      }
 
-      cargarProductos();
-    } finally {
-      ventaEnProceso = false;
-      actualizarResumenYValidacion();
+      setEnviando(true);
+      const claves = [LS_PRODUCTOS, LS_VENTAS, LS_MOVIMIENTOS];
+      const respaldos = {};
+
+      try {
+        claves.forEach(c => {
+          respaldos[c] = localStorage.getItem(c);
+        });
+
+        // Relectura de datos frescos para consistencia concurrente
+        const productosActuales = leerLista(LS_PRODUCTOS);
+        const ventasActuales = leerLista(LS_VENTAS);
+        const movimientosActuales = leerLista(LS_MOVIMIENTOS);
+
+        const productoActual = productosActuales.find(p => String(p.id) === String(productoId));
+        if (!productoActual) {
+          throw new Error("El producto seleccionado ya no se encuentra en el catálogo.");
+        }
+
+        const stockActual = Number(productoActual.stock || 0);
+        if (stockActual < cantidadNum) {
+          throw new Error(
+            `Existencias insuficientes. Se solicitaron ${cantidadNum} unidades, pero solo hay ${stockActual} disponibles.`
+          );
+        }
+
+        const precioUnitario = Number(productoActual.precio || 0);
+        const costoUnitario = Number(productoActual.costo || 0);
+        const total = Math.round(precioUnitario * cantidadNum * 100) / 100;
+        const utilidad = Math.round((precioUnitario - costoUnitario) * cantidadNum * 100) / 100;
+
+        const fechaIso = new Date().toISOString();
+        const idVenta = Date.now();
+
+        const nuevaVenta = {
+          id: idVenta,
+          fecha: fechaIso,
+          usuario: sesion.nombre,
+          usuarioId: sesion.id,
+          productoId: productoActual.id,
+          producto: productoActual.nombre,
+          precioUnitario,
+          cantidad: cantidadNum,
+          total
+        };
+
+        const nuevoMovimiento = {
+          id: idVenta,
+          tipo: "venta",
+          productoId: productoActual.id,
+          productoNombre: productoActual.nombre,
+          cantidad: cantidadNum,
+          precioUnitario,
+          total,
+          utilidad,
+          usuario: sesion.nombre,
+          fecha: fechaIso
+        };
+
+        productoActual.stock = stockActual - cantidadNum;
+        ventasActuales.push(nuevaVenta);
+        movimientosActuales.unshift(nuevoMovimiento);
+
+        try {
+          localStorage.setItem(LS_PRODUCTOS, JSON.stringify(productosActuales));
+          localStorage.setItem(LS_VENTAS, JSON.stringify(ventasActuales));
+          localStorage.setItem(LS_MOVIMIENTOS, JSON.stringify(movimientosActuales));
+        } catch (storageErr) {
+          claves.forEach(c => {
+            const ant = respaldos[c];
+            if (ant === null) localStorage.removeItem(c);
+            else if (ant !== undefined) localStorage.setItem(c, ant);
+          });
+          throw storageErr;
+        }
+
+        setProductos(productosActuales);
+        setVentas(ventasActuales);
+        setCantidad("1");
+        setProductoId("");
+
+        // Disparar sincronización para Reportes, Panel e Inventario
+        window.dispatchEvent(
+          new CustomEvent("tienditaDatosActualizados", {
+            detail: { clave: LS_VENTAS }
+          })
+        );
+        window.dispatchEvent(
+          new CustomEvent("ventaRegistrada", {
+            detail: { venta: nuevaVenta }
+          })
+        );
+
+        setMensaje({
+          tipo: "success",
+          texto: `Venta registrada: ${cantidadNum} unidades de ${productoActual.nombre} por ${moneda(total)}.`
+        });
+
+        if (typeof window.mostrarExito === "function") {
+          await window.mostrarExito(
+            `Se vendieron ${cantidadNum} unidades de ${productoActual.nombre} por ${moneda(total)}. Existencias restantes: ${productoActual.stock}.`,
+            "Venta registrada"
+          );
+        }
+      } catch (err) {
+        setMensaje({ tipo: "danger", texto: err.message || "No se pudo registrar la venta." });
+        if (typeof window.mostrarError === "function") {
+          await window.mostrarError(err.message, "No se pudo registrar la venta");
+        }
+        cargarDatos();
+      } finally {
+        setEnviando(false);
+      }
     }
+
+    return h(
+      React.Fragment,
+      null,
+      h(
+        "div",
+        { className: "view-head" },
+        h("h2", null, "Punto de Venta"),
+        h(
+          "p",
+          null,
+          "Registra ventas de mostrador y descuenta el inventario automáticamente."
+        )
+      ),
+      h(
+        "div",
+        { className: "two-col" },
+        h(FormularioVenta, {
+          productos,
+          productoSeleccionado,
+          productoId,
+          setProductoId,
+          cantidad,
+          setCantidad,
+          mensaje,
+          enviando,
+          onSubmit: handleConfirmarVenta
+        }),
+        h(ResumenCobro, {
+          productoSeleccionado,
+          cantidad,
+          sesion
+        })
+      ),
+      h(HistorialVentas, { ventas })
+    );
   }
 
-  const sesion = obtenerSesion();
-
-  if (!sesion) {
-    window.location.href = "MiTiendita/login.html";
-    return;
+  try {
+    window.ReactDOM.createRoot(mountNode).render(h(AplicacionVentas));
+  } catch (e) {
+    mountNode.innerHTML = `<div class="alert alert-danger m-3">Error al inicializar el punto de venta: ${e.message}</div>`;
   }
-
-  nombreVendedor.textContent = sesion.nombre;
-
-  selectProducto.addEventListener(
-    "change",
-    actualizarResumenYValidacion
-  );
-
-  inputCantidad.addEventListener(
-    "input",
-    actualizarResumenYValidacion
-  );
-
-  formVenta.addEventListener("submit", confirmarVenta);
-
-  cargarProductos();
 })();
