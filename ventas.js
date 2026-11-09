@@ -1,14 +1,3 @@
-/**
- * ventas.js
- * Módulo de Punto de Venta en React 18 para La Tiendita.
- * Cumple con la distribución de trabajo del Integrante 3:
- * - Selección de producto y validación en tiempo real de existencias.
- * - Descuento automático de inventario y prevención de venta mayor al stock.
- * - Resumen reactivo de cobro e historial de operaciones.
- * - Disparo de eventos para sincronización con Reportes e Inventario.
- * - Cero emojis y cero tecnicismos para el usuario.
- */
-
 (function () {
   "use strict";
 
@@ -340,7 +329,6 @@
           respaldos[c] = localStorage.getItem(c);
         });
 
-        // Relectura de datos frescos para consistencia concurrente
         const productosActuales = leerLista(LS_PRODUCTOS);
         const ventasActuales = leerLista(LS_VENTAS);
         const movimientosActuales = leerLista(LS_MOVIMIENTOS);
@@ -412,7 +400,6 @@
         setCantidad("1");
         setProductoId("");
 
-        // Disparar sincronización para Reportes, Panel e Inventario
         window.dispatchEvent(
           new CustomEvent("tienditaDatosActualizados", {
             detail: { clave: LS_VENTAS }

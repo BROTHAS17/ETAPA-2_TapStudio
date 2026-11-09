@@ -1,10 +1,8 @@
-
 "use strict";
 
 const LS_SESION = "tiendita_sesion";
 const LS_PRODUCTOS = "tiendita_productos";
 
-// Obtener la sesión actual de forma segura.
 function obtenerSesion() {
     try {
         return JSON.parse(localStorage.getItem(LS_SESION));
@@ -16,7 +14,6 @@ function obtenerSesion() {
 
 const sesion = obtenerSesion();
 
-// Validar sesión y configurar la navegación.
 if (!sesion) {
     window.location.href = "MiTiendita/login.html";
 } else {
@@ -35,7 +32,6 @@ if (!sesion) {
     });
 }
 
-// Inicializar el módulo únicamente si existe una sesión.
 if (sesion) {
     iniciarInventario();
 }
@@ -51,7 +47,6 @@ function iniciarInventario() {
 
     let productos = [];
 
-    // Leer los productos almacenados.
     function leerProductos() {
         try {
             const datos = JSON.parse(
@@ -65,7 +60,6 @@ function iniciarInventario() {
         }
     }
 
-    // Mostrar mensajes de validación y confirmación.
     function mostrarMensaje(texto, tipo = "success") {
         mensajeEntrada.textContent = texto;
         mensajeEntrada.className = `alert alert-${tipo} mt-3`;
@@ -82,7 +76,6 @@ function iniciarInventario() {
         limpiarMensaje();
     }
 
-    // Guardar los cambios sin modificar otras claves del almacenamiento.
     function guardarProductos() {
         try {
             localStorage.setItem(
@@ -111,7 +104,6 @@ function iniciarInventario() {
         }
     }
 
-    // Dibujar la tabla de existencias.
     function mostrarInventario() {
         tablaInventario.innerHTML = "";
 
@@ -182,7 +174,6 @@ function iniciarInventario() {
         });
     }
 
-    // Calcular el valor del inventario y las alertas.
     function actualizarIndicadores() {
         const valorTotal = productos.reduce((total, producto) => {
             const stock = Number(producto.stock);
@@ -213,7 +204,6 @@ function iniciarInventario() {
         productosAlerta.textContent = cantidadAlertas;
     }
 
-    // Cargar productos disponibles en el selector.
     function cargarProductos() {
         productoEntrada.innerHTML = "";
 
@@ -234,7 +224,6 @@ function iniciarInventario() {
         });
     }
 
-    // Actualizar la información que se muestra en pantalla.
     function refrescarInventario() {
         productos = leerProductos();
 
@@ -243,7 +232,6 @@ function iniciarInventario() {
         cargarProductos();
     }
 
-    // Validar la selección del producto.
     productoEntrada.addEventListener("change", () => {
         productoEntrada.classList.toggle(
             "is-invalid",
@@ -253,7 +241,6 @@ function iniciarInventario() {
         limpiarMensaje();
     });
 
-    // Validar la cantidad ingresada.
     cantidadEntrada.addEventListener("input", () => {
         const cantidadTexto = cantidadEntrada.value.trim();
         const cantidad = Number(cantidadTexto);
@@ -268,7 +255,6 @@ function iniciarInventario() {
         limpiarMensaje();
     });
 
-    // Procesar el registro de una entrada de inventario.
     formEntrada.addEventListener("submit", event => {
         event.preventDefault();
         limpiarErrores();
@@ -302,7 +288,6 @@ function iniciarInventario() {
             return;
         }
 
-        // Leer nuevamente los productos antes de actualizar el stock.
         productos = leerProductos();
 
         const producto = productos.find(
@@ -336,11 +321,9 @@ function iniciarInventario() {
             return;
         }
 
-        // Actualizar las existencias.
         const stockAnterior = producto.stock;
         producto.stock = stockActual + cantidad;
 
-        // Si no se puede guardar, restaurar el valor en memoria.
         if (!guardarProductos()) {
             producto.stock = stockAnterior;
             return;
@@ -349,7 +332,6 @@ function iniciarInventario() {
         const nombreProducto = producto.nombre;
         const nuevoStock = producto.stock;
 
-        // Actualizar tabla, indicadores y selector.
         refrescarInventario();
 
         formEntrada.reset();
@@ -361,10 +343,8 @@ function iniciarInventario() {
         );
     });
 
-    // Carga inicial del módulo.
     refrescarInventario();
 
-    // Sincronización en tiempo real con React y otras pestañas
     window.addEventListener("tienditaDatosActualizados", event => {
         if (!event.detail || event.detail.clave === LS_PRODUCTOS) {
             refrescarInventario();

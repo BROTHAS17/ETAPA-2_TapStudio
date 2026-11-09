@@ -1,7 +1,3 @@
-// =====================================================
-// AUTENTICACIÓN - MI TIENDITA
-// =====================================================
-
 document.addEventListener("DOMContentLoaded", function () {
 
     const formLogin = document.getElementById("formLogin");
@@ -9,22 +5,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const passwordInput = document.getElementById("password");
     const mensajeError = document.getElementById("mensajeError");
 
-    // Si no estamos en la página de login, no ejecutar
     if (!formLogin || !emailInput || !passwordInput) {
         return;
     }
 
-    // =====================================================
-    // EXPRESIÓN REGULAR PARA VALIDAR EMAIL
-    // =====================================================
-
     const EMAIL_REGEX =
         /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-
-
-    // =====================================================
-    // ENVÍO DEL FORMULARIO
-    // =====================================================
 
     formLogin.addEventListener("submit", function (e) {
 
@@ -36,11 +22,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const email = emailInput.value.trim();
         const password = passwordInput.value;
-
-
-        // =================================================
-        // VALIDAR CORREO
-        // =================================================
 
         if (email === "") {
 
@@ -61,11 +42,6 @@ document.addEventListener("DOMContentLoaded", function () {
             valido = false;
         }
 
-
-        // =================================================
-        // VALIDAR CONTRASEÑA
-        // =================================================
-
         if (password === "") {
 
             mostrarError(
@@ -85,26 +61,14 @@ document.addEventListener("DOMContentLoaded", function () {
             valido = false;
         }
 
-
-        // Si hay errores, detener el proceso
         if (!valido) {
             return;
         }
-
-
-        // =================================================
-        // OBTENER USUARIOS
-        // =================================================
 
         const usuarios =
             JSON.parse(
                 localStorage.getItem("tiendita_usuarios")
             ) || [];
-
-
-        // =================================================
-        // BUSCAR USUARIO
-        // =================================================
 
         const usuario = usuarios.find(function (u) {
 
@@ -115,15 +79,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         });
 
-
-        // =================================================
-        // LOGIN CORRECTO
-        // =================================================
-
         if (usuario) {
 
-            // Guardar solamente los datos necesarios
-            // para mantener la sesión
             const sesion = {
                 id: usuario.id,
                 nombre: usuario.nombre,
@@ -136,16 +93,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 JSON.stringify(sesion)
             );
 
-
-            // Redirigir al dashboard
             window.location.href = "../index.html";
 
-
         } else {
-
-            // =================================================
-            // LOGIN INCORRECTO
-            // =================================================
 
             mensajeError.innerHTML = `
                 <div class="alert alert-danger">
@@ -159,11 +109,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     });
 
-
-    // =====================================================
-    // MOSTRAR ERROR DE CAMPO
-    // =====================================================
-
     function mostrarError(campo, mensaje) {
 
         campo.classList.add("is-invalid");
@@ -175,11 +120,6 @@ document.addEventListener("DOMContentLoaded", function () {
             feedback.textContent = mensaje;
         }
     }
-
-
-    // =====================================================
-    // LIMPIAR VALIDACIONES
-    // =====================================================
 
     function limpiarValidaciones() {
 
@@ -204,11 +144,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 });
-
-
-// =====================================================
-// CERRAR SESIÓN
-// =====================================================
 
 function cerrarSesion() {
 

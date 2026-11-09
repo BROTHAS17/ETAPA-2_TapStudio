@@ -1,9 +1,3 @@
-/**
- * js/sidebar.js
- * Barra lateral y navegación compartida para todas las vistas de La Tiendita.
- * Sintaxis JavaScript estándar (ES6) compatible con node --check.
- */
-
 (function () {
   "use strict";
 
@@ -150,7 +144,6 @@
     const rol = sesion.rol || "vendedor";
     const paginaActual = detectarPaginaActual();
 
-    // Actualizar nombre y rol en la cabecera
     const whoName =
       document.getElementById("whoName") ||
       document.getElementById("userName");
@@ -166,7 +159,6 @@
         sesion.rol === "admin" ? "Administrador/a" : "Vendedor/a";
     }
 
-    // Botón de salir
     const logoutBtn = document.getElementById("logoutBtn");
     if (logoutBtn) {
       logoutBtn.addEventListener("click", function () {
@@ -177,7 +169,6 @@
       });
     }
 
-    // Renderizar barra lateral y barra móvil inferior
     renderizarNavegacion(
       document.getElementById("sidebarNav"),
       paginaActual,

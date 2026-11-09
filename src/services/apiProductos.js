@@ -1,19 +1,6 @@
-/**
- * src/services/apiProductos.js
- * Servicio centralizado de consulta de catalogo asistido para La Tiendita.
- * Integra DummyJSON Groceries como fuente principal de abarrotes y
- * Open Food Facts v2 como respaldo automatico para codigos de barras.
- * Sin emojis ni tecnicismos expuestos al usuario final.
- */
-
 (function () {
   "use strict";
 
-  /**
-   * Mapea las categorias de Open Food Facts a una categoria del sistema
-   * @param {string} categoriasTexto Cadena con categorias devueltas por el servicio
-   * @returns {string} Categoria asignada
-   */
   function mapearCategoriaOpenFoodFacts(categoriasTexto) {
     if (!categoriasTexto || typeof categoriasTexto !== "string") {
       return "Otros";
@@ -103,11 +90,6 @@
     return "Otros";
   }
 
-  /**
-   * Consulta el catalogo de Open Food Facts v2 por codigo de barras numerico.
-   * @param {string} codigoBarras Codigo de barras a buscar
-   * @returns {Promise<Object>} Resultado con { exito, producto, mensaje, tipoError }
-   */
   async function consultarOpenFoodFacts(codigoBarras) {
     const codigoLimpio = String(codigoBarras || "").trim();
 
@@ -198,11 +180,6 @@
     }
   }
 
-  /**
-   * Mapea las categorias y titulos de DummyJSON Groceries a las categorias del sistema
-   * @param {Object} p Objeto producto devuelto por DummyJSON
-   * @returns {string} Categoria asignada
-   */
   function mapearCategoriaDummyJSON(p) {
     if (!p) return "Otros";
     const title = String(p.title || "").toLowerCase();
@@ -265,11 +242,6 @@
     return "Otros";
   }
 
-  /**
-   * Consulta DummyJSON Groceries por nombre, categoria o codigo de barras.
-   * @param {string} termino Texto de busqueda o codigo
-   * @returns {Promise<Object>} Resultado con { exito, producto, mensaje, tipoError, fuente }
-   */
   async function consultarDummyJSON(termino) {
     const terminoLimpio = String(termino || "").trim();
     if (!terminoLimpio) {
@@ -404,12 +376,6 @@
     }
   }
 
-  /**
-   * Consulta unificada: DummyJSON Groceries como fuente principal y
-   * Open Food Facts como respaldo automatico si se introduce un codigo de barras.
-   * @param {string} consulta Nombre, palabra clave o codigo de barras
-   * @returns {Promise<Object>} Resultado unificado
-   */
   async function consultarProductoExterno(consulta) {
     const query = String(consulta || "").trim();
     if (!query) {

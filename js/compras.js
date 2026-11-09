@@ -1,10 +1,3 @@
-/**
- * js/compras.js
- * Módulo de registro de compras y abastecimiento de inventario en React 18.
- * Implementa manejo transaccional con reversión automática (rollback).
- * Sin emojis y con redacción formal orientada al usuario final.
- */
-
 (function () {
   "use strict";
 

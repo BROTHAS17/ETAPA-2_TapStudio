@@ -1,10 +1,3 @@
-/**
- * js/reportes.js
- * Módulo de reportes, estadísticas y visualizaciones con Chart.js de La Tiendita.
- * Sintaxis JavaScript pura (ES6 estándar) compatible con el sistema.
- * Sin emojis y con presentación formal orientada al usuario final.
- */
-
 (function () {
   "use strict";
 
@@ -108,7 +101,6 @@
     const utilidad = ventas.reduce((s, m) => s + (Number(m.utilidad) || 0), 0);
     const ticketPromedio = ventas.length ? totalVentas / ventas.length : 0;
 
-    // Actualizar KPIs
     const elVentas = document.getElementById("kpiTotalVentas");
     const elCompras = document.getElementById("kpiTotalCompras");
     const elUtilidad = document.getElementById("kpiUtilidad");
@@ -119,7 +111,6 @@
     if (elUtilidad) elUtilidad.textContent = formatoMoneda(utilidad);
     if (elTicket) elTicket.textContent = formatoMoneda(ticketPromedio);
 
-    // Calcular productos más vendidos
     const topMap = {};
     ventas.forEach(v => {
       const nombre = v.productoNombre || "Producto";
@@ -302,7 +293,6 @@
     renderizarReporte();
     actualizarGraficaVentas();
 
-    // Eventos de sincronización y redimensionamiento dinámico
     window.addEventListener("reportesVistaMostrada", () => {
       if (graficaVentasChart) {
         graficaVentasChart.resize();

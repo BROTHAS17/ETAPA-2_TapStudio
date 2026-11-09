@@ -66,7 +66,6 @@
   .hidden{display:none !important;}
   .u-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
 
-  /* ---------- Acceso ---------- */
   #accessScreen{
     min-height:100dvh; display:flex; align-items:center; justify-content:center;
     padding:32px 20px calc(32px + var(--safe-b)); padding-top:calc(32px + var(--safe-t));
@@ -105,7 +104,6 @@
   .form-error{color:var(--danger); font-size:0.85rem; margin-top:-8px; margin-bottom:14px; text-align:left; display:none;}
   .form-error.show{display:block;}
 
-  /* ---------- App shell ---------- */
   #appShell{min-height:100dvh; display:flex; flex-direction:column;}
   .topbar{
     display:flex; align-items:center; justify-content:space-between; gap:16px;
@@ -151,7 +149,6 @@
   .view-head p{margin:4px 0 0; color:var(--ink-soft); font-size:0.9rem;}
   .view-head-row{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap;}
 
-  /* ---------- KPI cards ---------- */
   .kpi-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; margin-bottom:28px;}
   .kpi-card{
     background:var(--surface); border-radius:var(--radius-m); padding:16px 18px;
@@ -189,7 +186,6 @@
 
   .empty-state{padding:26px 10px; text-align:center; color:var(--ink-faint); font-size:0.88rem;}
 
-  /* ---------- Toolbar / filters ---------- */
   .toolbar{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; align-items:center;}
   .toolbar input[type="text"], .toolbar select{
     padding:9px 12px; border-radius:var(--radius-s); border:1px solid var(--border); background:var(--surface); color:var(--ink);
@@ -197,7 +193,6 @@
   .toolbar input[type="text"]{min-width:200px; flex:1;}
   .spacer{flex:1;}
 
-  /* ---------- Table ---------- */
   table{width:100%; border-collapse:collapse; background:var(--surface); border-radius:var(--radius-m); overflow:hidden;}
   thead th{
     text-align:left; font-size:0.76rem; color:var(--ink-soft); font-weight:600; padding:10px 14px;
@@ -216,7 +211,6 @@
   .icon-btn:hover{color:var(--ink); border-color:var(--ink-faint);}
   .card-table-wrap{background:var(--surface); border-radius:var(--radius-m); box-shadow:var(--shadow-card); overflow:hidden;}
 
-  /* ---------- Forms in views ---------- */
   .form-card{background:var(--surface); border-radius:var(--radius-m); box-shadow:var(--shadow-card); padding:20px 22px; margin-bottom:24px;}
   .form-card h3{font-size:1rem; margin-bottom:16px;}
   .form-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; align-items:end;}
@@ -227,7 +221,6 @@
   .hint{font-size:0.78rem; color:var(--ink-faint); margin-top:4px;}
   .inline-error{color:var(--danger); font-size:0.83rem; min-height:1.1em;}
 
-  /* ---------- Alertas ---------- */
   .alert-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px;}
   .alert-card{
     background:var(--surface); border:1.5px dashed var(--border); border-radius:var(--radius-m);
@@ -246,7 +239,6 @@
   .alert-stock{font-size:0.85rem; margin-bottom:12px;}
   .alert-stock b{font-family:var(--font-display); font-size:1.2rem;}
 
-  /* ---------- Reportes ---------- */
   .segmented{display:inline-flex; background:var(--surface-2); border-radius:var(--radius-s); padding:3px; gap:2px;}
   .segmented button{
     background:none; border:none; padding:7px 14px; border-radius:5px; font-size:0.83rem; font-weight:500; color:var(--ink-soft);
@@ -259,7 +251,6 @@
   .bar-fill{height:100%; background:var(--accent); border-radius:4px;}
   .type-filter{display:flex; gap:6px;}
 
-  /* ---------- Modal ---------- */
   .modal-overlay{
     position:fixed; inset:0; background:rgba(18,32,27,0.45); display:flex; align-items:center; justify-content:center;
     padding:20px; z-index:100;
@@ -274,7 +265,6 @@
   .modal-foot{display:flex; justify-content:flex-end; gap:10px; margin-top:20px;}
   .modal-foot .btn{width:auto;}
 
-  /* ---------- Toast ---------- */
   #toastHost{position:fixed; bottom:calc(20px + var(--safe-b)); left:50%; transform:translateX(-50%); z-index:200; display:flex; flex-direction:column; gap:8px; align-items:center;}
   .toast{
     background:var(--ink); color:var(--bg); padding:10px 18px; border-radius:24px; font-size:0.85rem; font-weight:500;
@@ -282,10 +272,8 @@
   }
   @keyframes toastIn{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
 
-  /* ---------- Role visibility ---------- */
   body.role-vendedor [data-admin-only]{display:none !important;}
 
-  /* ---------- Mobile ---------- */
   .bottom-tabs{display:none;}
   @media (max-width: 860px){
     .sidebar{display:none;}

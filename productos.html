@@ -12,7 +12,6 @@
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
     <link rel="stylesheet" href="styles.css?v=20261014-bootstrap">
 
-    <!-- React 18, ReactDOM y Babel Standalone (CDN) -->
     <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
@@ -20,7 +19,6 @@
 <body>
 
 <div id="appShell">
-    <!-- BARRA SUPERIOR -->
     <header class="topbar">
         <div class="brand">
             <span class="brand-mark">
@@ -49,12 +47,9 @@
         </div>
     </header>
 
-    <!-- CUERPO PRINCIPAL CON BARRA LATERAL -->
     <div class="layout">
-        <!-- BARRA LATERAL IZQUIERDA -->
         <nav class="sidebar" id="sidebarNav"></nav>
 
-        <!-- ÁREA DE CONTENIDO (REACT MONTA AQUÍ) -->
         <main id="mainArea">
             <div id="root">
                 <div class="d-flex justify-content-center align-items-center" style="min-height: 50vh;">
@@ -69,11 +64,9 @@
         </main>
     </div>
 
-    <!-- NAVEGACIÓN MÓVIL INFERIOR -->
     <nav class="bottom-tabs" id="bottomNav"></nav>
 </div>
 
-<!-- Scripts de soporte -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="js/sidebar.js"></script>
@@ -81,27 +74,10 @@
 <script src="src/services/apiProductos.js"></script>
 <script src="js/productos.js"></script>
 
-<!-- Componente React principal -->
 <script type="text/babel">
-/**
- * Mi Tiendita - Modulo de Productos en React
- * Integrante 1: Migracion a React, Arquitectura de Componentes y Consumo de Catalogo Externo.
- *
- * Diseno 100% integrado al sistema visual de La Tiendita:
- * - Utiliza las clases y variables exactas de styles.css (.modal-overlay, .product-modal, .field, .btn-accent, .btn-ghost).
- * - Sin Bootstrap modal generico: armoniza con Fraunces, Work Sans y la paleta de colores.
- * - Sin imagenes en las tarjetas ni en el formulario.
- * - Cero terminos tecnicos de cara al usuario.
- * - Sincronizacion directa con localStorage ('tiendita_productos').
- * - Cero emojis.
- */
 
 const { useState, useEffect, useMemo, useRef } = React;
 
-// ============================================================================
-// COMPONENTE: Modal Formulario de Producto (Crear / Editar)
-// Disenado con la misma linea estetica de La Tiendita (.product-modal de styles.css)
-// ============================================================================
 function FormularioProductoModal({
     abierto,
     onCerrar,
@@ -123,16 +99,14 @@ function FormularioProductoModal({
     const [formData, setFormData] = useState(estadoInicial);
     const [errores, setErrores] = useState({});
 
-    // Estados de consulta sugerida
     const [busquedaSugerida, setBusquedaSugerida] = useState("");
-    const [estadoConsulta, setEstadoConsulta] = useState("idle"); // 'idle' | 'cargando' | 'encontrado' | 'no_encontrado' | 'error'
+    const [estadoConsulta, setEstadoConsulta] = useState("idle");
     const [mensajeConsulta, setMensajeConsulta] = useState("");
     const [productoEncontrado, setProductoEncontrado] = useState(null);
 
     const inputCostoRef = useRef(null);
     const inputSugeridaRef = useRef(null);
 
-    // Reiniciar y cargar datos cuando se abre el modal
     useEffect(() => {
         if (!abierto) return;
 
@@ -163,7 +137,6 @@ function FormularioProductoModal({
                 setBusquedaSugerida("");
                 setEstadoConsulta("idle");
                 setMensajeConsulta("");
-                // Enfocar el campo de busqueda de sugerencias
                 setTimeout(() => {
                     if (inputSugeridaRef.current) {
                         inputSugeridaRef.current.focus();
@@ -177,7 +150,6 @@ function FormularioProductoModal({
 
     const esEdicion = Boolean(productoEditando && productoEditando.id);
 
-    // Funcion interna para consultar informacion sugerida
     const ejecutarConsulta = async (termino) => {
         const query = String(termino || "").trim();
         if (!query) {
@@ -212,7 +184,6 @@ function FormularioProductoModal({
                     return actualizado;
                 });
 
-                // Enfocar el costo para que el usuario pueda ajustarlo comodamente
                 setTimeout(() => {
                     if (inputCostoRef.current) {
                         inputCostoRef.current.focus();
@@ -282,7 +253,6 @@ function FormularioProductoModal({
         onGuardar(productoFinal);
     };
 
-    // Calculo del margen comercial en tiempo real
     const costoNum = Number(formData.costo);
     const precioNum = Number(formData.precio);
     const tienePreciosValidos = !isNaN(costoNum) && !isNaN(precioNum) && costoNum > 0 && precioNum > 0;
@@ -299,7 +269,6 @@ function FormularioProductoModal({
             }}
         >
             <div className="product-modal modal-wide">
-                {/* Cabecera del modal */}
                 <div className="product-modal-head">
                     <h3>{esEdicion ? "Editar producto" : "Registrar producto"}</h3>
                     <button
@@ -317,7 +286,6 @@ function FormularioProductoModal({
                 </div>
 
                 <form onSubmit={handleSubmit} noValidate>
-                    {/* SECCION 1: ASISTENTE DE SUGERENCIAS (Solo visible al crear) */}
                     {!esEdicion && (
                         <div
                             style={{
@@ -349,7 +317,6 @@ function FormularioProductoModal({
                                 Escribe el nombre o código de un artículo (ejemplo: Leche, Café, Aceite, Arroz, Jugo) para autocompletar la información.
                             </p>
 
-                            {/* Barra de busqueda del asistente */}
                             <div className="d-flex gap-2 mb-2">
                                 <input
                                     ref={inputSugeridaRef}
@@ -384,7 +351,6 @@ function FormularioProductoModal({
                                 </button>
                             </div>
 
-                            {/* Sugerencias en chips */}
                             <div className="d-flex flex-wrap align-items-center gap-1 mb-2">
                                 <span className="hint me-1">Sugerencias:</span>
                                 {[
@@ -412,14 +378,12 @@ function FormularioProductoModal({
                                 ))}
                             </div>
 
-                            {/* Estado Cargando */}
                             {estadoConsulta === "cargando" && (
                                 <div className="hint text-center py-1">
                                     Buscando información sugerida...
                                 </div>
                             )}
 
-                            {/* Estado Encontrado */}
                             {estadoConsulta === "encontrado" && productoEncontrado && (
                                 <div
                                     style={{
@@ -452,7 +416,6 @@ function FormularioProductoModal({
                                 </div>
                             )}
 
-                            {/* Estado No encontrado */}
                             {estadoConsulta === "no_encontrado" && (
                                 <div
                                     style={{
@@ -468,7 +431,6 @@ function FormularioProductoModal({
                                 </div>
                             )}
 
-                            {/* Estado Error */}
                             {estadoConsulta === "error" && (
                                 <div
                                     style={{
@@ -486,7 +448,6 @@ function FormularioProductoModal({
                         </div>
                     )}
 
-                    {/* SECCION 2: CAMPOS CON ESTILO NATIVO (.field) */}
                     <div className="row g-3 mx-0">
                         <div className="field col-12 col-sm-6">
                             <label htmlFor="pCodigo">Código de barras / Identificador</label>
@@ -560,7 +521,6 @@ function FormularioProductoModal({
                             {errores.precio && <p className="inline-error">{errores.precio}</p>}
                         </div>
 
-                        {/* Calculo de margen en tiempo real */}
                         {margenMonto !== null && (
                             <div className="col-12">
                                 <div
@@ -608,7 +568,6 @@ function FormularioProductoModal({
                         </div>
                     </div>
 
-                    {/* PIE DEL MODAL CON BOTONES NATIVOS */}
                     <div className="modal-foot">
                         <button type="button" className="btn btn-ghost" onClick={onCerrar}>
                             Cancelar
@@ -623,10 +582,6 @@ function FormularioProductoModal({
     );
 }
 
-// ============================================================================
-// COMPONENTE: Tarjeta Individual de Producto (Card)
-// Formato limpio y compacto sin imagenes, enfocado en datos operativos.
-// ============================================================================
 function TarjetaProducto({ producto, onEditar, onEliminar }) {
     const stockNum = Number(producto.stock);
     const minNum = Number(producto.stockMinimo);
@@ -642,7 +597,6 @@ function TarjetaProducto({ producto, onEditar, onEliminar }) {
                     borderRadius: "10px"
                 }}
             >
-                {/* Cabecera de la tarjeta: Categoria y Codigo */}
                 <div>
                     <div className="d-flex justify-content-between align-items-center mb-2">
                         <span
@@ -672,7 +626,6 @@ function TarjetaProducto({ producto, onEditar, onEliminar }) {
                         )}
                     </div>
 
-                    {/* Nombre del producto */}
                     <h5
                         className="fw-bold mb-3"
                         style={{ fontSize: "1.05rem", lineHeight: "1.3" }}
@@ -681,7 +634,6 @@ function TarjetaProducto({ producto, onEditar, onEliminar }) {
                         {producto.nombre}
                     </h5>
 
-                    {/* Cuadricula de datos financieros */}
                     <div
                         className="p-2 mb-3 rounded"
                         style={{
@@ -706,7 +658,6 @@ function TarjetaProducto({ producto, onEditar, onEliminar }) {
                     </div>
                 </div>
 
-                {/* Pie con existencias y acciones */}
                 <div className="pt-2 border-top d-flex justify-content-between align-items-center mt-2">
                     <div>
                         <span className="small text-muted me-1">Existencias:</span>
@@ -747,9 +698,6 @@ function TarjetaProducto({ producto, onEditar, onEliminar }) {
     );
 }
 
-// ============================================================================
-// COMPONENTE: Barra de Filtros y Busqueda
-// ============================================================================
 function BarraFiltros({ busqueda, onCambiarBusqueda, categoria, onCambiarCategoria }) {
     return (
         <div className="panel-box mb-4">
@@ -787,9 +735,6 @@ function BarraFiltros({ busqueda, onCambiarBusqueda, categoria, onCambiarCategor
     );
 }
 
-// ============================================================================
-// COMPONENTE: Lista de Productos
-// ============================================================================
 function ListaProductos({
     productos,
     busqueda,
@@ -879,16 +824,12 @@ function ListaProductos({
     );
 }
 
-// ============================================================================
-// COMPONENTE PRINCIPAL (AppProductos)
-// ============================================================================
 function AppProductos() {
     const [productos, setProductos] = useState([]);
     const [sesion, setSesion] = useState(null);
     const [busqueda, setBusqueda] = useState("");
     const [categoriaFiltro, setCategoriaFiltro] = useState("");
 
-    // Control de modales y edicion
     const [modalAbierto, setModalAbierto] = useState(false);
     const [productoEditando, setProductoEditando] = useState(null);
     const [terminoParaBuscar, setTerminoParaBuscar] = useState("");
@@ -1006,7 +947,6 @@ function AppProductos() {
 
     return (
         <div>
-            {/* Encabezado */}
             <div className="view-head view-head-row mb-4">
                 <div>
                     <h2>Catálogo de Productos</h2>
@@ -1037,7 +977,6 @@ function AppProductos() {
                 </div>
             </div>
 
-            {/* Barra de Filtros */}
             <BarraFiltros
                 busqueda={busqueda}
                 onCambiarBusqueda={setBusqueda}
@@ -1045,7 +984,6 @@ function AppProductos() {
                 onCambiarCategoria={setCategoriaFiltro}
             />
 
-            {/* Lista de Productos */}
             <ListaProductos
                 productos={productosFiltrados}
                 busqueda={busqueda}
@@ -1055,7 +993,6 @@ function AppProductos() {
                 onAbrirConTermino={handleAbrirConTermino}
             />
 
-            {/* Modal Formulario con Asistente de Sugerencias */}
             <FormularioProductoModal
                 abierto={modalAbierto}
                 onCerrar={() => {
@@ -1072,7 +1009,6 @@ function AppProductos() {
     );
 }
 
-// Montar la aplicación React en el contenedor root
 const rootElement = document.getElementById("root");
 if (rootElement) {
     ReactDOM.createRoot(rootElement).render(<AppProductos />);

@@ -1,7 +1,6 @@
 (function(){
   "use strict";
 
-  /* ============ ICONOS ============ */
   var ICONS = {
     panel:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="7" height="7" rx="1.4"/><rect x="11" y="2" width="7" height="7" rx="1.4"/><rect x="2" y="11" width="7" height="7" rx="1.4"/><rect x="11" y="11" width="7" height="7" rx="1.4"/></svg>',
     productos:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 9.5l-6-6H3v7.5l6 6a2 2 0 0 0 2.8 0l4.7-4.7a2 2 0 0 0 0-2.8Z"/><circle cx="6.5" cy="6.5" r="1.5"/></svg>',
@@ -26,7 +25,6 @@
     {key:'proveedores', label:'Proveedores', url:'proveedores.html', icon:ICONS.proveedores, roles:['admin','vendedor']}
   ];
 
-  /* ============ ESTADO ============ */
   var STORE_PRODUCTS = 'tiendita_productos';
   var STORE_MOVEMENTS = 'tiendita_movimientos';
   var STORE_USER = 'tiendita_sesion';
@@ -69,13 +67,11 @@
   function saveMovementsLocal(){ try{ localStorage.setItem(STORE_MOVEMENTS, JSON.stringify(state.movements)); }catch(e){} }
   function saveUser(){ try{ localStorage.setItem(STORE_USER, JSON.stringify(state.user)); }catch(e){} }
 
-  /* ============ LÓGICA DE NEGOCIO CENTRAL (funciones puras) ============ */
   function findProduct(id){
     for(var i=0;i<state.products.length;i++){ if(String(state.products[i].id) === String(id)) return state.products[i]; }
     return null;
   }
 
-  // Calcula el nuevo stock y el costo promedio ponderado tras una compra. No muta nada.
   function calcCompra(product, cantidad, costoUnitario){
     if(!(cantidad > 0)) throw new Error('La cantidad debe ser mayor a cero.');
     if(!(costoUnitario >= 0)) throw new Error('El costo unitario no puede ser negativo.');
@@ -84,7 +80,6 @@
     return { nuevoStock: nuevoStock, nuevoCosto: round2(nuevoCosto) };
   }
 
-  // Calcula el nuevo stock y la utilidad de una venta, validando existencia. No muta nada.
   function calcVenta(product, cantidad, precioUnitario){
     if(!(cantidad > 0)) throw new Error('La cantidad debe ser mayor a cero.');
     if(cantidad > product.stock) throw new Error('Solo hay ' + product.stock + ' unidades disponibles de ' + product.nombre + '.');
@@ -141,7 +136,6 @@
     return {movs: movs, totalVentas:totalVentas, totalCompras:totalCompras, utilidad:utilidad, ticketProm:ticketProm, top:top, countVentas:ventas.length};
   }
 
-  /* ============ DATOS DE EJEMPLO (compartidos entre modo local y modo en equipo) ============ */
   var SEED_DEFS = [
     {key:'coca', nombre:'Coca-Cola 600ml', categoria:'Bebidas', costo:12, precio:18, stockMinimo:20},
     {key:'agua', nombre:'Agua Ciel 1L', categoria:'Bebidas', costo:6, precio:10, stockMinimo:30},
@@ -235,7 +229,6 @@
     }
   }
 
-  /* ============ CAPA DE DATOS: local (por dispositivo) o compartida (por equipo) ============ */
   function setSyncStatus(mode){
     var dot = document.getElementById('syncDot');
     var text = document.getElementById('syncPillText');
@@ -259,7 +252,6 @@
       try{ state.products = JSON.parse(localStorage.getItem(STORE_PRODUCTS)) || []; }catch(e){ state.products = []; }
       try{ state.movements = JSON.parse(localStorage.getItem(STORE_MOVEMENTS)) || []; }catch(e){ state.movements = []; }
       
-      // Migrate old ventas if not already migrated
       if (!localStorage.getItem('tiendita_migrated_ventas')) {
          var oldVentas = JSON.parse(localStorage.getItem('tiendita_ventas')) || [];
          oldVentas.forEach(function(v) {
@@ -305,7 +297,7 @@
       var snap2 = await db.collection('products').limit(1).get();
       if(!snap2.empty) return;
       await seedShared();
-    }catch(e){ /* la siembra es de mejor esfuerzo; si falla, la tienda arranca vacía */ }
+    }catch(e){  }
   }
 
   async function initDataLayer(){
@@ -328,7 +320,6 @@
     }
   }
 
-  /* ============ ESCRITURAS: compra / venta / producto ============ */
   async function commitCompra(product, cantidad, costoUnitario, proveedor){
     var calc = calcCompra(product, cantidad, costoUnitario);
     var mv = buildMovimientoCompra(product, cantidad, costoUnitario, new Date().toISOString(), proveedor, state.user.nombre);
@@ -424,7 +415,6 @@
     }
   }
 
-  /* ============ TOAST ============ */
   function showToast(msg){
     var host = document.getElementById('toastHost');
     var t = document.createElement('div');
@@ -434,8 +424,6 @@
     setTimeout(function(){ t.remove(); }, 2600);
   }
 
-
-  /* ============ PROVEEDORES INTEGRADOS ============ */
   var STORE_PROVIDERS = 'tiendita_proveedores';
   var providerEditingId = null;
 
@@ -561,7 +549,6 @@
     renderProveedores();
   }
 
-  /* ============ NAVEGACIÓN ============ */
   function isAdmin(){ return state.user && state.user.rol === 'admin'; }
 
   function buildNav(container){
@@ -615,7 +602,6 @@
     else if(state.currentView === 'proveedores') { initProviders(); renderProveedores(); }
   }
 
-  /* ============ RENDER: PANEL ============ */
   function renderPanel(){
     document.getElementById('panelGreeting').textContent = 'Hola, ' + state.user.nombre;
     document.getElementById('panelDate').textContent = new Date().toLocaleDateString('es-MX', {weekday:'long', day:'numeric', month:'long'});
@@ -659,7 +645,6 @@
     document.getElementById('panelLowStock').innerHTML = lowHtml || '<div class="empty-state">Todo el inventario está en niveles saludables.</div>';
   }
 
-  /* ============ RENDER: INVENTARIO ============ */
   function populateCategoriaFilter(){
     var sel = document.getElementById('invCategoria');
     var current = sel.value;
@@ -704,7 +689,6 @@
     }).join('');
   }
 
-  /* ============ RENDER: COMPRAS ============ */
   function populateProductSelect(sel){
     var opts = state.products.slice().sort(function(a,b){return a.nombre.localeCompare(b.nombre);}).map(function(p){
       return '<option value="'+p.id+'">'+escapeHtml(p.nombre)+' (stock: '+p.stock+')</option>';
@@ -733,7 +717,6 @@
     if(p) document.getElementById('compraCosto').value = p.costo;
   }
 
-  /* ============ RENDER: VENTAS ============ */
   function renderVentas(){
     var sel = document.getElementById('ventaProducto');
     var prevVal = sel.value;
@@ -757,7 +740,6 @@
     if(p) document.getElementById('ventaPrecio').value = p.precio;
   }
 
-  /* ============ RENDER: ALERTAS ============ */
   function renderAlertas(){
     var lows = lowStockProducts();
     var grid = document.getElementById('alertGrid');
@@ -830,7 +812,6 @@ function dibujarGraficaProductos(productos) {
   });
 }
 
-  /* ============ RENDER: REPORTES ============ */
   function renderReportes(){
     var data = reportData(state.reportRange);
     dibujarGraficaProductos(data.top);
@@ -856,7 +837,6 @@ function dibujarGraficaProductos(productos) {
     }).join('') : '<div class="empty-state">Sin movimientos en este periodo.</div>';
   }
 
-  /* ============ MODAL PRODUCTO ============ */
   var editingProductId = null;
 
   function openProductModal(product){
@@ -953,7 +933,6 @@ async function confirmarEliminar(nombre) {
     }catch(err){ showToast('No se pudo eliminar: ' + err.message); }
   }
 
-  /* ============ EVENTOS: COMPRAS / VENTAS ============ */
   async function handleCompraSubmit(e){
     e.preventDefault();
     var errEl = document.getElementById('compraError');
@@ -994,7 +973,6 @@ async function confirmarEliminar(nombre) {
     }catch(err){ errEl.textContent = err.message; }
   }
 
-  /* ============ ACCESO ============ */
   function handleAccessSubmit(e){
     e.preventDefault();
     var name = document.getElementById('accName').value.trim();
@@ -1025,7 +1003,6 @@ async function confirmarEliminar(nombre) {
     window.location.href = 'MiTiendita/login.html';
   }
 
-  /* ============ INICIALIZACIÓN ============ */
   function init(){
     try{ state.user = JSON.parse(localStorage.getItem(STORE_USER)) || null; }catch(e){ state.user = null; }
     if(!state.user){ window.location.href = 'MiTiendita/login.html'; return; }
@@ -1072,7 +1049,6 @@ async function confirmarEliminar(nombre) {
       renderReportes();
     });
 
-    // Sincronizar el sistema original con las operaciones registradas desde React (Compras / Ventas)
     window.addEventListener('tienditaDatosActualizados', function(){
       if (usingSharedDb) return;
 

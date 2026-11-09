@@ -1,9 +1,3 @@
-/*
- * Mi Tiendita - Alertas con SweetAlert2
- * Funciones reutilizables para mostrar mensajes.
- */
-
-// Mostrar mensaje de éxito
 function mostrarExito(mensaje, titulo = '¡Correcto!') {
     return Swal.fire({
         title: titulo,
@@ -14,7 +8,6 @@ function mostrarExito(mensaje, titulo = '¡Correcto!') {
     });
 }
 
-// Mostrar mensaje de error
 function mostrarError(mensaje, titulo = 'Ha ocurrido un error') {
     return Swal.fire({
         title: titulo,
@@ -25,7 +18,6 @@ function mostrarError(mensaje, titulo = 'Ha ocurrido un error') {
     });
 }
 
-// Mostrar mensaje de advertencia
 function mostrarAdvertencia(mensaje, titulo = 'Atención') {
     return Swal.fire({
         title: titulo,
@@ -36,7 +28,6 @@ function mostrarAdvertencia(mensaje, titulo = 'Atención') {
     });
 }
 
-// Confirmar una acción antes de ejecutarla
 async function confirmarAccion({
     titulo = '¿Estás seguro?',
     mensaje = 'Esta acción requiere tu confirmación.',

@@ -1,18 +1,8 @@
-/**
- * js/productos.js
- * Capa de persistencia local y reglas de validacion para el modulo de Productos.
- * El consumo de datos externos se encuentra centralizado en src/services/apiProductos.js.
- * Sin emojis ni tecnicismos expuestos al usuario final.
- */
-
 "use strict";
 
 const LS_PRODUCTOS = "tiendita_productos";
 const LS_SESION = "tiendita_sesion";
 
-/**
- * Categorias estandar admitidas por el sistema
- */
 const CATEGORIAS_VALIDAS = [
     "Abarrotes",
     "Bebidas",
@@ -24,10 +14,6 @@ const CATEGORIAS_VALIDAS = [
     "Otros"
 ];
 
-/**
- * Lee la lista de productos de localStorage de forma segura
- * @returns {Array} Arreglo de productos o lista vacia
- */
 function leerProductos() {
     try {
         const datos = JSON.parse(localStorage.getItem(LS_PRODUCTOS));
@@ -38,11 +24,6 @@ function leerProductos() {
     }
 }
 
-/**
- * Guarda la lista de productos en localStorage y emite el evento de sincronizacion
- * @param {Array} productos Arreglo de productos a guardar
- * @returns {boolean} true si se guardo con exito
- */
 function guardarProductos(productos) {
     try {
         localStorage.setItem(LS_PRODUCTOS, JSON.stringify(productos));
@@ -62,10 +43,6 @@ function guardarProductos(productos) {
     }
 }
 
-/**
- * Obtiene los datos de la sesion actual
- * @returns {Object|null}
- */
 function obtenerSesion() {
     try {
         return JSON.parse(localStorage.getItem(LS_SESION));
@@ -75,29 +52,11 @@ function obtenerSesion() {
     }
 }
 
-/**
- * Cierra la sesion activa y redirige al inicio de sesion
- */
 function cerrarSesionUsuario() {
     localStorage.removeItem(LS_SESION);
     window.location.href = "MiTiendita/login.html";
 }
 
-/**
- * Valida los campos de un producto antes de guardarlo.
- * Conserva todas las reglas de negocio del proyecto:
- * - Nombre requerido y no duplicado.
- * - Categoria requerida.
- * - Costo numerico > 0.
- * - Precio numerico > costo.
- * - Stock entero >= 0.
- * - Stock minimo entero >= 0.
- *
- * @param {Object} producto Datos del producto a validar
- * @param {Array} productosExistentes Lista actual de productos
- * @param {string|number|null} idEditando ID del producto que se esta editando (si aplica)
- * @returns {Object} { valido: boolean, errores: Object }
- */
 function validarProducto(producto, productosExistentes = [], idEditando = null) {
     const errores = {};
 
