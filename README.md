@@ -37,7 +37,7 @@ Adjuntamos los enlaces para los recursos de esta segunda etapa:
 
 Video explicativo:
 
-
+https://udbedu-my.sharepoint.com/:v:/g/personal/um261449_alumno_udb_edu_sv/IQCqAxdQ7gcNQ7Ih-u1asur8AUrLC1DIO0SBplZ5_LpB6UE?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=9dGnHq
 
 Documento:
 
