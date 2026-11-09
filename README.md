@@ -30,3 +30,15 @@ Documento:
 https://udbedu-my.sharepoint.com/:b:/g/personal/um261449_alumno_udb_edu_sv/IQBiEToB7X--ToJPqSYpOz1xAdOQDc2UcxzMyKBSR2UE8co?e=rXlDHr
 
 Muchas gracias!
+
+UPDATE SEGUNDA ETAPA: Buen dia Ingeniero!
+
+Adjuntamos los enlaces para los recursos de esta segunda etapa:
+
+Video explicativo:
+
+
+
+Documento:
+
+https://udbedu-my.sharepoint.com/:b:/g/personal/um261449_alumno_udb_edu_sv/IQDXtIncN8arTawnlPu9gBreAWvkhCFbxuDwTt-ld00zfkM?e=H4dhBQ
