@@ -1,3 +1,5 @@
+import { leerMovimientosConsolidados } from './src/storage.js';
+
 (function(){
   "use strict";
 
@@ -112,25 +114,26 @@
     var now = new Date();
     if(rangeKey === 'hoy'){ var d=new Date(now.getFullYear(),now.getMonth(),now.getDate()); return d.getTime(); }
     if(rangeKey === 'semana'){ return Date.now() - 7*86400000; }
-    if(rangeKey === 'mes'){ return Date.now() - 30*86400000; }
+    if(rangeKey === 'mes'){ return new Date(now.getFullYear(), now.getMonth(), 1).getTime(); }
     return 0;
   }
 
   function reportData(rangeKey){
     var start = rangeStart(rangeKey);
-    var movs = state.movements.filter(function(m){ return new Date(m.fecha).getTime() >= start; });
+    var origen = usingSharedDb ? state.movements : leerMovimientosConsolidados();
+    var movs = origen.filter(function(m){ return new Date(m.fecha).getTime() >= start; });
     var ventas = movs.filter(function(m){ return m.tipo === 'venta'; });
     var compras = movs.filter(function(m){ return m.tipo === 'compra'; });
-    var totalVentas = ventas.reduce(function(s,m){ return s+m.total; },0);
-    var totalCompras = compras.reduce(function(s,m){ return s+m.total; },0);
-    var utilidad = ventas.reduce(function(s,m){ return s+(m.utilidad||0); },0);
+    var totalVentas = ventas.reduce(function(s,m){ return s+(Number(m.total)||0); },0);
+    var totalCompras = compras.reduce(function(s,m){ return s+(Number(m.total)||0); },0);
+    var utilidad = ventas.reduce(function(s,m){ return s+(Number(m.utilidad)||0); },0);
     var ticketProm = ventas.length ? totalVentas/ventas.length : 0;
 
     var porProducto = {};
     ventas.forEach(function(m){
       if(!porProducto[m.productoId]) porProducto[m.productoId] = {nombre:m.productoNombre, cantidad:0, total:0};
-      porProducto[m.productoId].cantidad += m.cantidad;
-      porProducto[m.productoId].total += m.total;
+      porProducto[m.productoId].cantidad += Number(m.cantidad)||0;
+      porProducto[m.productoId].total += Number(m.total)||0;
     });
     var top = Object.keys(porProducto).map(function(k){ return porProducto[k]; })
       .sort(function(a,b){ return b.cantidad - a.cantidad; }).slice(0,5);
@@ -490,8 +493,10 @@
     document.getElementById('panelDate').textContent = new Date().toLocaleDateString('es-MX', {weekday:'long', day:'numeric', month:'long'});
 
     var hoy = reportData('hoy');
+    var mes = isAdmin() ? reportData('mes') : null;
     var kpis = [];
     if(isAdmin()){
+      kpis.push({num: money(mes.totalVentas), label:'Ventas del mes', tone:'success'});
       kpis.push({num: state.products.length, label:'Productos activos', tone:''});
       kpis.push({num: money(inventoryValue()), label:'Valor de inventario', tone:''});
       kpis.push({num: money(hoy.totalVentas), label:'Ventas de hoy', tone:'success'});
@@ -665,6 +670,30 @@
       return '<div class="bar-row"><div class="bar-top"><span class="nom">'+escapeHtml(t.nombre)+'</span><span>'+t.cantidad+' u · '+money(t.total)+'</span></div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;"></div></div></div>';
     }).join('');
     document.getElementById('topProductos').innerHTML = topHtml || '<div class="empty-state">Sin ventas en este periodo.</div>';
+
+    var categoriasPorProducto = new Map(state.products.map(function(p){ return [String(p.id), p.categoria]; }));
+    var categoriasVendidas = new Map();
+    data.movs.filter(function(m){ return m.tipo === 'venta'; }).forEach(function(m){
+      var categoria = categoriasPorProducto.get(String(m.productoId)) || 'Sin categoría';
+      categoriasVendidas.set(categoria, (categoriasVendidas.get(categoria) || 0) + (Number(m.cantidad) || 0));
+    });
+    window.dispatchEvent(new CustomEvent('reporteActualizado', {
+      detail: { categorias: Array.from(categoriasVendidas.entries()) }
+    }));
+
+    var inventario = document.getElementById('reporteInventario');
+    inventario.replaceChildren();
+    state.products.forEach(function(p){
+      var fila = inventario.insertRow();
+      [p.nombre, p.categoria, p.stock, money(Number(p.stock) * Number(p.costo))].forEach(function(valor){
+        fila.insertCell().textContent = valor;
+      });
+    });
+    if(!state.products.length){
+      var celda = inventario.insertRow().insertCell();
+      celda.colSpan = 4;
+      celda.textContent = 'No hay productos registrados.';
+    }
 
     var tipo = state.histTipo;
     var hist = data.movs.filter(function(m){ return !tipo || m.tipo === tipo; })

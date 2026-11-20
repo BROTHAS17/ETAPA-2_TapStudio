@@ -47,15 +47,17 @@ function actualizarGraficaVentas() {
     graficaVentas.destroy();
   }
 
+  const texto = getComputedStyle(canvas).getPropertyValue('--ink-soft').trim();
   graficaVentas = new Chart(canvas, {
-    type: 'bar',
+    type: 'line',
     data: {
       labels: ultimosSieteDias.map(dia => dia.fecha),
       datasets: [{
         label: 'Ventas ($)',
         data: ultimosSieteDias.map(dia => dia.total),
         backgroundColor: '#6D8F72',
-        borderRadius: 6
+        borderColor: '#6D8F72',
+        tension: 0.25
       }]
     },
     options: {
@@ -63,12 +65,13 @@ function actualizarGraficaVentas() {
       maintainAspectRatio: true,
       plugins: {
         legend: {
-          display: true
+          display: true, labels: { color: texto }
         }
       },
       scales: {
+        x: { ticks: { color: texto } },
         y: {
-          beginAtZero: true
+          beginAtZero: true, ticks: { color: texto }
         }
       }
     }
@@ -88,4 +91,32 @@ document.addEventListener('DOMContentLoaded', () => {
     'ventaRegistrada',
     actualizarGraficaVentas
   );
+});
+
+let graficaCategorias = null;
+window.addEventListener('reporteActualizado', ({ detail }) => {
+  const canvas = document.getElementById('graficaCategorias');
+  if (!canvas) return;
+
+  const categorias = detail.categorias;
+  graficaCategorias?.destroy();
+  graficaCategorias = null;
+  canvas.parentElement.hidden = categorias.length === 0;
+  document.getElementById('categoriasSinDatos').hidden = categorias.length > 0;
+  if (!categorias.length) return;
+
+  canvas.setAttribute('aria-label', categorias.map(([nombre, cantidad]) => `${nombre}: ${cantidad}`).join(', '));
+  const texto = getComputedStyle(canvas).getPropertyValue('--ink-soft').trim();
+  graficaCategorias = new Chart(canvas, {
+    type: 'doughnut',
+    data: {
+      labels: categorias.map(([nombre]) => nombre),
+      datasets: [{ data: categorias.map(([, cantidad]) => cantidad) }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: texto } } }
+    }
+  });
 });
