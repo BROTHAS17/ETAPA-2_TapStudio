@@ -497,6 +497,14 @@ import { leerMovimientosConsolidados } from './src/storage.js';
     var kpis = [];
     if(isAdmin()){
       kpis.push({num: money(mes.totalVentas), label:'Ventas del mes', tone:'success'});
+      kpis.push({num: mes.movs.filter(function(m){return m.tipo==='compra';}).length, label:'Compras registradas este mes', tone:''});
+      var categoriasMes = categoriasVendidas(mes.movs.filter(function(m){return m.tipo==='venta';}));
+      if(mes.top.length){
+        kpis.push({num: escapeHtml(mes.top[0].nombre), label:'Producto más vendido del mes', tone:''});
+      }
+      if(categoriasMes.length){
+        kpis.push({num: escapeHtml(categoriasMes[0][0]), label:'Categoría más vendida del mes', tone:''});
+      }
       kpis.push({num: state.products.length, label:'Productos activos', tone:''});
       kpis.push({num: money(inventoryValue()), label:'Valor de inventario', tone:''});
       kpis.push({num: money(hoy.totalVentas), label:'Ventas de hoy', tone:'success'});
@@ -652,6 +660,54 @@ import { leerMovimientosConsolidados } from './src/storage.js';
   }
 
   /* ============ RENDER: REPORTES ============ */
+  function categoriasVendidas(ventas){
+    var categoriasPorProducto = new Map(state.products.map(function(p){ return [String(p.id), p.categoria]; }));
+    var unidades = new Map();
+    ventas.forEach(function(venta){
+      var categoria = venta.categoria || categoriasPorProducto.get(String(venta.productoId)) || 'Sin categoría';
+      unidades.set(categoria, (unidades.get(categoria) || 0) + (Number(venta.cantidad) || 0));
+    });
+    return Array.from(unidades.entries()).sort(function(a,b){ return b[1] - a[1]; });
+  }
+
+  function generarReporteCsv(tipo, datos, productos){
+    var filas;
+    if(tipo === 'inventario'){
+      filas = [['Producto', 'Categoría', 'Existencias', 'Costo unitario', 'Valor al costo']];
+      productos.forEach(function(p){
+        filas.push([p.nombre, p.categoria, Number(p.stock), Number(p.costo), (Number(p.stock)*Number(p.costo)).toFixed(2)]);
+      });
+    } else {
+      filas = [['Fecha', 'Tipo', 'Producto', 'Cantidad', 'Total', 'Utilidad bruta']];
+      datos.movs.filter(function(m){ return tipo === 'general' || m.tipo === tipo; }).forEach(function(m){
+        filas.push([fmtDateTime(m.fecha), m.tipo, m.productoNombre, Number(m.cantidad), Number(m.total).toFixed(2),
+          m.tipo === 'venta' && m.utilidad != null ? Number(m.utilidad).toFixed(2) : '']);
+      });
+    }
+    return '\uFEFF'+filas.map(function(fila){
+      return fila.map(function(celda){
+        var texto = String(celda ?? '');
+        if(typeof celda === 'string' && /^[\s]*[=+@-]/.test(texto) && !/^-\d+\.\d{2}$/.test(texto)) texto = "'"+texto;
+        return '"'+texto.replace(/"/g,'""')+'"';
+      }).join(',');
+    }).join('\r\n');
+  }
+
+  function descargarReporte(){
+    if(!isAdmin()) return;
+    var tipo = document.getElementById('tipoDescargaReporte').value;
+    var periodo = tipo === 'inventario' ? 'actual' : state.reportRange;
+    var csv = generarReporteCsv(tipo, reportData(state.reportRange), state.products);
+    var url = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
+    var enlace = document.createElement('a');
+    enlace.href = url;
+    enlace.download = 'mi-tiendita-'+tipo+'-'+periodo+'.csv';
+    document.body.appendChild(enlace);
+    enlace.click();
+    enlace.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); },1000);
+  }
+
   function renderReportes(){
     var data = reportData(state.reportRange);
     var kpis = [
@@ -671,20 +727,10 @@ import { leerMovimientosConsolidados } from './src/storage.js';
     }).join('');
     document.getElementById('topProductos').innerHTML = topHtml || '<div class="empty-state">Sin ventas en este periodo.</div>';
 
-    var categoriasPorProducto = new Map(state.products.map(function(p){ return [String(p.id), p.categoria]; }));
-    var categoriasVendidas = new Map();
-    data.movs.filter(function(m){ return m.tipo === 'venta'; }).forEach(function(m){
-      var categoria = categoriasPorProducto.get(String(m.productoId)) || 'Sin categoría';
-      categoriasVendidas.set(categoria, (categoriasVendidas.get(categoria) || 0) + (Number(m.cantidad) || 0));
-    });
+    var ventas = data.movs.filter(function(m){ return m.tipo === 'venta'; });
     window.dispatchEvent(new CustomEvent('reporteActualizado', {
-      detail: {
-        categorias: Array.from(categoriasVendidas.entries()),
-        ventas: data.movs.filter(function(m){ return m.tipo === 'venta'; }),
-        periodo: state.reportRange
-      }
+      detail: { categorias: categoriasVendidas(ventas), ventas: ventas, periodo: state.reportRange }
     }));
-
     var inventario = document.getElementById('reporteInventario');
     inventario.replaceChildren();
     state.products.forEach(function(p){
@@ -890,6 +936,7 @@ import { leerMovimientosConsolidados } from './src/storage.js';
       }
     });
 
+    document.getElementById('descargarReporte').addEventListener('click', descargarReporte);
     document.getElementById('rangeSeg').addEventListener('click', function(e){
       var btn = e.target.closest('button[data-range]');
       if(!btn) return;

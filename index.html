@@ -216,6 +216,16 @@
           </div>
         </div>
 
+        <div class="panel-box mb-3 d-flex flex-wrap align-items-center gap-2">
+          <label for="tipoDescargaReporte">Descargar reporte</label>
+          <select id="tipoDescargaReporte">
+            <option value="general">General</option>
+            <option value="venta">Ventas</option>
+            <option value="compra">Compras</option>
+            <option value="inventario">Inventario actual</option>
+          </select>
+          <button type="button" id="descargarReporte" class="btn btn-ghost btn-small">Descargar CSV</button>
+        </div>
         <div class="kpi-grid" id="reporteKpis"></div>
 
 <!-- Gráfica de ventas con Chart.js -->
