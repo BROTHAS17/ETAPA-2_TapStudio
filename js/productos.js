@@ -1,3 +1,5 @@
+import "../src/services/apiProductos.js";
+
 
 "use strict";
 
@@ -26,7 +28,7 @@ try {
 }
 
 if (!sesion) {
-    window.location.href = "login.html";
+    window.location.href = "MiTiendita/login.html";
 } else {
     let productos = leerProductos();
     let productoEditando = null;
@@ -49,6 +51,67 @@ if (!sesion) {
         stock: document.getElementById("stock"),
         stockMinimo: document.getElementById("stockMinimo")
     };
+
+
+    const panelConsulta = document.getElementById("consultaExterna");
+    const consulta = document.getElementById("consultaProducto");
+    const buscarExterno = document.getElementById("buscarProductoExterno");
+    const estadoConsulta = document.getElementById("estadoConsultaProducto");
+    let versionConsulta = 0;
+
+    async function buscarEnCatalogo() {
+        if (buscarExterno.disabled) return;
+        const version = ++versionConsulta;
+        buscarExterno.disabled = true;
+        estadoConsulta.textContent = "Buscando en el catálogo…";
+
+        try {
+            const resultado = await window.consultarProductoExterno(consulta.value);
+            if (version !== versionConsulta) return;
+            if (!resultado.exito) {
+                estadoConsulta.textContent = resultado.mensaje;
+                return;
+            }
+
+            const producto = resultado.producto;
+            const categoriaDisponible = Array.from(campos.categoria.options)
+                .some(opcion => opcion.value === producto.categoria);
+            const sugerencias = {
+                nombre: producto.nombre,
+                categoria: categoriaDisponible ? producto.categoria : "Otros",
+                costo: producto.costo,
+                precio: producto.precio
+            };
+            for (const [campo, valor] of Object.entries(sugerencias)) {
+                if (campos[campo].value === "" && valor != null) {
+                    campos[campo].value = valor;
+                }
+            }
+            estadoConsulta.textContent = "Producto encontrado. Revisa las sugerencias antes de guardar.";
+        } catch {
+            if (version === versionConsulta) {
+                estadoConsulta.textContent = "No se pudo consultar el catálogo. Puedes ingresar los datos manualmente.";
+            }
+        } finally {
+            if (version === versionConsulta) buscarExterno.disabled = false;
+        }
+    }
+
+    buscarExterno.addEventListener("click", buscarEnCatalogo);
+    consulta.addEventListener("keydown", evento => {
+        if (evento.key === "Enter") {
+            evento.preventDefault();
+            buscarEnCatalogo();
+        }
+    });
+    modalElemento.addEventListener("show.bs.modal", () => {
+        panelConsulta.hidden = productoEditando !== null;
+    });
+    modalElemento.addEventListener("hide.bs.modal", () => {
+        versionConsulta++;
+        buscarExterno.disabled = false;
+        estadoConsulta.textContent = "";
+    });
 
     function limpiarErrores() {
         Object.values(campos).forEach(campo => {
@@ -205,7 +268,7 @@ if (!sesion) {
             cuerpo.className = "card-body";
 
             cuerpo.appendChild(
-                crearElemento("h5", producto.nombre, "card-title")
+                crearElemento("h3", producto.nombre, "card-title")
             );
             cuerpo.appendChild(
                 crearElemento(
@@ -255,7 +318,7 @@ if (!sesion) {
             const botonEditar = crearElemento(
                 "button",
                 "Editar",
-                "btn btn-warning"
+                "btn btn-ghost btn-small"
             );
             botonEditar.type = "button";
             botonEditar.addEventListener("click", () => {
@@ -265,7 +328,7 @@ if (!sesion) {
             const botonEliminar = crearElemento(
                 "button",
                 "Eliminar",
-                "btn btn-danger"
+                "btn btn-danger btn-small"
             );
             botonEliminar.type = "button";
             botonEliminar.addEventListener("click", () => {

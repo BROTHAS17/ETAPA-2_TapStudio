@@ -1,7 +1,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Chart from 'chart.js/auto';
-import { CLAVES, leerDatos } from './storage.js';
+import { leerMovimientosConsolidados } from './storage.js';
 
 function Reportes() {
   const [movimientos, setMovimientos] = useState([]);
@@ -15,8 +15,7 @@ function Reportes() {
   // Cargar movimientos y escuchar actualizaciones
   useEffect(() => {
     const cargarMovimientos = () => {
-      const datos = leerDatos(CLAVES.movimientos, []);
-      setMovimientos(Array.isArray(datos) ? datos : []);
+      setMovimientos(leerMovimientosConsolidados());
     };
 
     cargarMovimientos();

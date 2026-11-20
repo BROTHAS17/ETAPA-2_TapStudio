@@ -1,27 +1,15 @@
 
 import Chart from 'chart.js/auto';
+import { leerMovimientosConsolidados } from './storage.js';
 
 let graficaVentas = null;
-
-function obtenerMovimientos() {
-  try {
-    const datos = JSON.parse(
-      localStorage.getItem('tiendita_movimientos') || '[]'
-    );
-
-    return Array.isArray(datos) ? datos : [];
-  } catch (error) {
-    console.error('Error al obtener movimientos:', error);
-    return [];
-  }
-}
 
 function actualizarGraficaVentas() {
   const canvas = document.getElementById('graficaVentas');
 
   if (!canvas) return;
 
-  const movimientos = obtenerMovimientos();
+  const movimientos = leerMovimientosConsolidados();
 
   const ventas = movimientos.filter(
     movimiento => movimiento.tipo === 'venta'

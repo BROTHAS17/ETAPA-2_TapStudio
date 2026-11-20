@@ -300,3 +300,57 @@
     .sync-pill{padding:6px; gap:0;}
     .form-grid{grid-template-columns:1fr;}
   }
+
+/* Catálogo y formulario de Productos */
+.catalogo-productos .btn {
+  width: auto;
+  text-decoration: none;
+}
+.catalogo-productos .btn-danger {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+.catalogo-productos .card,
+.catalogo-productos .modal-content {
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-m);
+}
+.catalogo-productos .card-title {
+  font-size: 1.25rem;
+}
+.catalogo-productos :is(.text-muted, .form-text) {
+  color: var(--ink-soft) !important;
+}
+.catalogo-productos :is(.form-control, .form-select) {
+  background-color: var(--surface-2);
+  color: var(--ink);
+  border-color: var(--border);
+}
+.catalogo-productos .form-control::placeholder {
+  color: var(--ink-soft);
+}
+.catalogo-productos :is(.form-control, .form-select):focus {
+  border-color: var(--accent);
+  box-shadow: none;
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.catalogo-productos :is(.is-invalid, .is-invalid:focus) {
+  border-color: var(--danger);
+}
+.catalogo-productos .invalid-feedback {
+  color: var(--danger);
+}
+.catalogo-productos :is(.modal-header, .modal-footer) {
+  border-color: var(--border);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .catalogo-productos .btn-close {
+    filter: invert(1);
+  }
+}
+:root[data-theme="dark"] .catalogo-productos .btn-close {
+  filter: invert(1);
+}
