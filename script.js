@@ -113,7 +113,7 @@ import { leerMovimientosConsolidados } from './src/storage.js';
   function rangeStart(rangeKey){
     var now = new Date();
     if(rangeKey === 'hoy'){ var d=new Date(now.getFullYear(),now.getMonth(),now.getDate()); return d.getTime(); }
-    if(rangeKey === 'semana'){ return Date.now() - 7*86400000; }
+    if(rangeKey === 'semana'){ return new Date(now.getFullYear(), now.getMonth(), now.getDate()-6).getTime(); }
     if(rangeKey === 'mes'){ return new Date(now.getFullYear(), now.getMonth(), 1).getTime(); }
     return 0;
   }
@@ -678,7 +678,11 @@ import { leerMovimientosConsolidados } from './src/storage.js';
       categoriasVendidas.set(categoria, (categoriasVendidas.get(categoria) || 0) + (Number(m.cantidad) || 0));
     });
     window.dispatchEvent(new CustomEvent('reporteActualizado', {
-      detail: { categorias: Array.from(categoriasVendidas.entries()) }
+      detail: {
+        categorias: Array.from(categoriasVendidas.entries()),
+        ventas: data.movs.filter(function(m){ return m.tipo === 'venta'; }),
+        periodo: state.reportRange
+      }
     }));
 
     var inventario = document.getElementById('reporteInventario');
@@ -890,7 +894,10 @@ import { leerMovimientosConsolidados } from './src/storage.js';
       var btn = e.target.closest('button[data-range]');
       if(!btn) return;
       state.reportRange = btn.dataset.range;
-      document.querySelectorAll('#rangeSeg button').forEach(function(b){ b.classList.toggle('active', b===btn); });
+      document.querySelectorAll('#rangeSeg button').forEach(function(b){
+        b.classList.toggle('active', b===btn);
+        b.setAttribute('aria-pressed', String(b===btn));
+      });
       renderReportes();
     });
        document.getElementById('histTipo').addEventListener('change', function(){

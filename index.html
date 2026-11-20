@@ -209,10 +209,10 @@
           </div>
 
           <div class="segmented" id="rangeSeg">
-            <button data-range="hoy">Hoy</button>
-            <button data-range="semana">Semana</button>
-            <button data-range="mes">Mes</button>
-            <button data-range="todo" class="active">Todo</button>
+            <button type="button" aria-pressed="false" data-range="hoy">Hoy</button>
+            <button type="button" aria-pressed="false" data-range="semana">Semana</button>
+            <button type="button" aria-pressed="false" data-range="mes">Mes</button>
+            <button type="button" aria-pressed="true" data-range="todo" class="active">Todo</button>
           </div>
         </div>
 
@@ -220,7 +220,7 @@
 
 <!-- Gráfica de ventas con Chart.js -->
 <div class="panel-box" style="margin-bottom: 20px;">
-  <h3>Ventas de los últimos 7 días</h3>
+  <h3 id="tituloGraficaVentas">Ventas por período</h3>
   <canvas id="graficaVentas" height="100"></canvas>
 </div>
 
