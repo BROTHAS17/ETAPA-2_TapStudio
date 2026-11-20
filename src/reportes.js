@@ -1,61 +1,78 @@
 
 import Chart from 'chart.js/auto';
-import { leerMovimientosConsolidados } from './storage.js';
+
 
 let graficaVentas = null;
 
-function actualizarGraficaVentas() {
-  const canvas = document.getElementById('graficaVentas');
+export function serieVentas(ventas, periodo, hoy = new Date()) {
+  const fechas = new Map();
+  const porHora = periodo === 'hoy';
+  const porMes = periodo === 'todo';
+  const clave = fecha => porHora
+    ? fecha.getHours()
+    : porMes
+      ? fecha.getFullYear() * 12 + fecha.getMonth()
+      : new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate()).getTime();
 
-  if (!canvas) return;
-
-  const movimientos = leerMovimientosConsolidados();
-
-  const ventas = movimientos.filter(
-    movimiento => movimiento.tipo === 'venta'
-  );
-
-  const ultimosSieteDias = [];
-
-  for (let i = 6; i >= 0; i--) {
-    const fecha = new Date();
-    fecha.setDate(fecha.getDate() - i);
-
-    const fechaClave = fecha.toLocaleDateString('en-CA');
-
-    const total = ventas
-      .filter(venta => {
-        if (!venta.fecha) return false;
-
-        const fechaVenta = new Date(venta.fecha);
-
-        return !Number.isNaN(fechaVenta.getTime()) &&
-          fechaVenta.toLocaleDateString('en-CA') === fechaClave;
-      })
-      .reduce((suma, venta) => suma + Number(venta.total || 0), 0);
-
-    ultimosSieteDias.push({
-      fecha: fecha.toLocaleDateString('es-SV', {
-        day: '2-digit',
-        month: 'short'
-      }),
-      total
-    });
+  if (!porMes) {
+    const inicio = periodo === 'semana' ? hoy.getDate() - 6 : 1;
+    const cantidad = porHora ? 24 : periodo === 'semana' ? 7 : hoy.getDate();
+    for (let i = 0; i < cantidad; i++) {
+      const fecha = porHora
+        ? new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), i)
+        : new Date(hoy.getFullYear(), hoy.getMonth(), inicio + i);
+      fechas.set(clave(fecha), { fecha, total: 0 });
+    }
   }
 
+  for (const venta of ventas) {
+    const fecha = new Date(venta.fecha);
+    if (Number.isNaN(fecha.getTime())) continue;
+    const indice = clave(fecha);
+    if (!fechas.has(indice)) {
+      if (!porMes) continue;
+      fechas.set(indice, { fecha, total: 0 });
+    }
+    fechas.get(indice).total += Number(venta.total) || 0;
+  }
+
+  return Array.from(fechas.entries()).sort(([a], [b]) => a - b).map(([, { fecha, total }]) => ({
+    etiqueta: porHora
+      ? `${String(fecha.getHours()).padStart(2, '0')}:00`
+      : fecha.toLocaleDateString('es-SV', porMes
+        ? { month: 'short', year: 'numeric' }
+        : { day: 'numeric', month: 'short' }),
+    total
+  }));
+}
+
+function actualizarGraficaVentas(ventas, periodo) {
+  const canvas = document.getElementById('graficaVentas');
+  if (!canvas) return;
+
+  const titulos = {
+    hoy: 'Ventas de hoy por hora',
+    semana: 'Ventas de los últimos 7 días',
+    mes: 'Ventas del mes por día',
+    todo: 'Ventas de todo el historial por mes'
+  };
+  document.getElementById('tituloGraficaVentas').textContent = titulos[periodo];
+  const serie = serieVentas(ventas, periodo);
   if (graficaVentas) {
     graficaVentas.destroy();
   }
 
+  const texto = getComputedStyle(canvas).getPropertyValue('--ink-soft').trim();
   graficaVentas = new Chart(canvas, {
-    type: 'bar',
+    type: 'line',
     data: {
-      labels: ultimosSieteDias.map(dia => dia.fecha),
+      labels: serie.map(punto => punto.etiqueta),
       datasets: [{
         label: 'Ventas ($)',
-        data: ultimosSieteDias.map(dia => dia.total),
+        data: serie.map(punto => punto.total),
         backgroundColor: '#6D8F72',
-        borderRadius: 6
+        borderColor: '#6D8F72',
+        tension: 0.25
       }]
     },
     options: {
@@ -63,29 +80,44 @@ function actualizarGraficaVentas() {
       maintainAspectRatio: true,
       plugins: {
         legend: {
-          display: true
+          display: true, labels: { color: texto }
         }
       },
       scales: {
+        x: { ticks: { color: texto } },
         y: {
-          beginAtZero: true
+          beginAtZero: true, ticks: { color: texto }
         }
       }
     }
   });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  actualizarGraficaVentas();
+let graficaCategorias = null;
+window.addEventListener('reporteActualizado', ({ detail }) => {
+  actualizarGraficaVentas(detail.ventas, detail.periodo);
+  const canvas = document.getElementById('graficaCategorias');
+  if (!canvas) return;
 
-    window.addEventListener('reportesVistaMostrada', () => {
-    if (graficaVentas) {
-      graficaVentas.resize();
+  const categorias = detail.categorias;
+  graficaCategorias?.destroy();
+  graficaCategorias = null;
+  canvas.parentElement.hidden = categorias.length === 0;
+  document.getElementById('categoriasSinDatos').hidden = categorias.length > 0;
+  if (!categorias.length) return;
+
+  canvas.setAttribute('aria-label', categorias.map(([nombre, cantidad]) => `${nombre}: ${cantidad}`).join(', '));
+  const texto = getComputedStyle(canvas).getPropertyValue('--ink-soft').trim();
+  graficaCategorias = new Chart(canvas, {
+    type: 'doughnut',
+    data: {
+      labels: categorias.map(([nombre]) => nombre),
+      datasets: [{ data: categorias.map(([, cantidad]) => cantidad) }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: texto } } }
     }
   });
-
-  window.addEventListener(
-    'ventaRegistrada',
-    actualizarGraficaVentas
-  );
 });

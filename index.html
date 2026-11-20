@@ -209,21 +209,47 @@
           </div>
 
           <div class="segmented" id="rangeSeg">
-            <button data-range="hoy">Hoy</button>
-            <button data-range="semana">Semana</button>
-            <button data-range="mes">Mes</button>
-            <button data-range="todo" class="active">Todo</button>
+            <button type="button" aria-pressed="false" data-range="hoy">Hoy</button>
+            <button type="button" aria-pressed="false" data-range="semana">Semana</button>
+            <button type="button" aria-pressed="false" data-range="mes">Mes</button>
+            <button type="button" aria-pressed="true" data-range="todo" class="active">Todo</button>
           </div>
         </div>
 
+        <div class="panel-box mb-3 d-flex flex-wrap align-items-center gap-2">
+          <label for="tipoDescargaReporte">Descargar reporte</label>
+          <select id="tipoDescargaReporte">
+            <option value="general">General</option>
+            <option value="venta">Ventas</option>
+            <option value="compra">Compras</option>
+            <option value="inventario">Inventario actual</option>
+          </select>
+          <button type="button" id="descargarReporte" class="btn btn-ghost btn-small">Descargar CSV</button>
+        </div>
         <div class="kpi-grid" id="reporteKpis"></div>
 
 <!-- Gráfica de ventas con Chart.js -->
 <div class="panel-box" style="margin-bottom: 20px;">
-  <h3>Resumen de ventas</h3>
+  <h3 id="tituloGraficaVentas">Ventas por período</h3>
   <canvas id="graficaVentas" height="100"></canvas>
 </div>
 
+          <section class="panel-box mb-3">
+            <h3>Unidades vendidas por categoría</h3>
+            <p id="categoriasSinDatos" hidden>Sin ventas en este período.</p>
+            <div style="height: 240px;">
+              <canvas id="graficaCategorias" role="img" aria-label="Unidades vendidas por categoría"></canvas>
+            </div>
+          </section>
+          <section class="panel-box mb-3">
+            <h3>Inventario actual</h3>
+            <div class="u-scroll">
+              <table aria-label="Inventario actual">
+                <thead><tr><th>Producto</th><th>Categoría</th><th>Existencias</th><th>Valor al costo</th></tr></thead>
+                <tbody id="reporteInventario"></tbody>
+              </table>
+            </div>
+          </section>
 <div class="two-col">
           <div class="panel-box">
             <h3>Productos más vendidos</h3>
