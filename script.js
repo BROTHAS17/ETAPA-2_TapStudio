@@ -16,6 +16,7 @@
   var NAV_ITEMS = [
     {key:'panel', label:'Panel', icon:ICONS.panel, roles:['admin','vendedor']},
     {key:'inventario', label:'Inventario', icon:ICONS.inventario, roles:['admin','vendedor']},
+    {key:'productos', label:'Productos', icon:ICONS.inventario, href:'productos.html', roles:['admin']},
     {key:'compras', label:'Compras', icon:ICONS.compras, roles:['admin']},
     {key:'ventas', label:'Ventas', icon:ICONS.ventas, roles:['admin','vendedor']},
     {key:'alertas', label:'Alertas', icon:ICONS.alertas, roles:['admin','vendedor']},
@@ -446,7 +447,10 @@
         if(n > 0) badge = '<span class="nav-badge">' + n + '</span>';
       }
       btn.innerHTML = it.icon + '<span>' + it.label + '</span>' + badge;
-      btn.addEventListener('click', function(){ setView(it.key); });
+      btn.addEventListener('click', function(){
+        if(it.href) window.location.href = it.href;
+        else setView(it.key);
+      });
       container.appendChild(btn);
     });
   }
@@ -866,8 +870,8 @@
     });
 
     
-    // Sincronizar el sistema original con las ventas registradas desde React
-    window.addEventListener('tienditaDatosActualizados', function(){
+    // Sincronizar cambios del mismo panel y de otras pestañas.
+    function sincronizarDatosLocales(){
       if (usingSharedDb) return;
 
       try {
@@ -885,6 +889,13 @@
           'Error al actualizar los datos desde React:',
           error
         );
+      }
+    }
+    window.addEventListener('tienditaDatosActualizados', sincronizarDatosLocales);
+    window.addEventListener('storage', function(evento){
+      if(evento.storageArea === localStorage &&
+         (evento.key === STORE_PRODUCTS || evento.key === STORE_MOVEMENTS)){
+        sincronizarDatosLocales();
       }
     });
 
