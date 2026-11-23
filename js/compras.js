@@ -186,7 +186,10 @@
         ),
         h(
           "div",
-          { className: "panel-box bg-light border p-3 my-3 d-flex justify-content-between align-items-center" },
+          {
+            className: "panel-box p-3 my-3 d-flex justify-content-between align-items-center",
+            style: { background: "var(--surface-2)" }
+          },
           h("span", { className: "fw-semibold text-secondary" }, "Total calculado:"),
           h(
             "span",
@@ -313,6 +316,20 @@
 
     useEffect(() => {
       cargarDatos();
+
+      const params = new URLSearchParams(window.location.search);
+      const idDesdeAlerta = params.get("productoId");
+      if (idDesdeAlerta) {
+        const listaProductos = leerLista(LS_PRODUCTOS);
+        const encontrado = listaProductos.find(p => String(p.id) === String(idDesdeAlerta));
+        if (encontrado) {
+          setFormulario(actual => ({
+            ...actual,
+            productoId: String(encontrado.id),
+            costo: encontrado.costo ? String(encontrado.costo) : actual.costo
+          }));
+        }
+      }
 
       const handleActualizacion = () => cargarDatos();
       window.addEventListener("tienditaDatosActualizados", handleActualizacion);
@@ -525,17 +542,25 @@
 
   try {
     let sesion = null;
-    try {
-      sesion = JSON.parse(localStorage.getItem(LS_SESION));
-    } catch {
-      sesion = null;
+    if (typeof window.verificarAcceso === "function") {
+      sesion = window.verificarAcceso(true);
+    } else {
+      try {
+        sesion = JSON.parse(localStorage.getItem(LS_SESION));
+      } catch {
+        sesion = null;
+      }
+      if (!sesion) {
+        window.location.href = "MiTiendita/login.html";
+      } else if (sesion.rol !== "admin") {
+        window.location.href = "index.html";
+        sesion = null;
+      }
     }
 
-    if (!sesion) {
-      sesion = { nombre: "Administrador", rol: "admin" };
+    if (sesion) {
+      window.ReactDOM.createRoot(mountNode).render(h(AplicacionCompras));
     }
-
-    window.ReactDOM.createRoot(mountNode).render(h(AplicacionCompras));
   } catch (error) {
     mountNode.innerHTML = `<div class="alert alert-danger m-3">No se pudo iniciar el módulo: ${error.message}</div>`;
   }

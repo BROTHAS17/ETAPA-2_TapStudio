@@ -4,7 +4,7 @@ function mostrarExito(mensaje, titulo = '¡Correcto!') {
         text: mensaje,
         icon: 'success',
         confirmButtonText: 'Aceptar',
-        confirmButtonColor: '#2563eb'
+        confirmButtonColor: '#D9A62E'
     });
 }
 
@@ -14,7 +14,7 @@ function mostrarError(mensaje, titulo = 'Ha ocurrido un error') {
         text: mensaje,
         icon: 'error',
         confirmButtonText: 'Entendido',
-        confirmButtonColor: '#dc2626'
+        confirmButtonColor: '#A8432B'
     });
 }
 
@@ -24,7 +24,7 @@ function mostrarAdvertencia(mensaje, titulo = 'Atención') {
         text: mensaje,
         icon: 'warning',
         confirmButtonText: 'Aceptar',
-        confirmButtonColor: '#d97706'
+        confirmButtonColor: '#B4791E'
     });
 }
 
@@ -41,8 +41,8 @@ async function confirmarAccion({
         showCancelButton: true,
         confirmButtonText: textoConfirmar,
         cancelButtonText: textoCancelar,
-        confirmButtonColor: '#dc2626',
-        cancelButtonColor: '#6b7280',
+        confirmButtonColor: '#A8432B',
+        cancelButtonColor: '#52655A',
         reverseButtons: true,
         focusCancel: true
     });
