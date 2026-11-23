@@ -204,7 +204,7 @@
         "div",
         { className: "text-end text-muted small mt-4 pt-3 border-top" },
         "Atendido por: ",
-        h("strong", { className: "text-dark" }, sesion.nombre || "Usuario")
+        h("strong", { style: { color: "var(--ink)" } }, sesion.nombre || "Usuario")
       )
     );
   }
@@ -471,7 +471,23 @@
   }
 
   try {
-    window.ReactDOM.createRoot(mountNode).render(h(AplicacionVentas));
+    let sesion = null;
+    if (typeof window.verificarAcceso === "function") {
+      sesion = window.verificarAcceso(false);
+    } else {
+      try {
+        sesion = JSON.parse(localStorage.getItem(LS_SESION));
+      } catch {
+        sesion = null;
+      }
+      if (!sesion) {
+        window.location.href = "MiTiendita/login.html";
+      }
+    }
+
+    if (sesion) {
+      window.ReactDOM.createRoot(mountNode).render(h(AplicacionVentas));
+    }
   } catch (e) {
     mountNode.innerHTML = `<div class="alert alert-danger m-3">Error al inicializar el punto de venta: ${e.message}</div>`;
   }

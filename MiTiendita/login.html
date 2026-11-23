@@ -7,109 +7,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../styles.css?v=20261014-integration">
-  <script>
-    (function cargarDatosIniciales() {
-
-        if (!localStorage.getItem("tiendita_usuarios")) {
-
-            const usuarios = [
-                {
-                    id: 1,
-                    nombre: "Admin General",
-                    email: "nathz93@hotmail.com",
-                    password: "Password123*",
-                    rol: "admin"
-                },
-                {
-                    id: 2,
-                    nombre: "Marilyn (Cajero)",
-                    email: "nathzvlz@gmail.com",
-                    password: "Password123*",
-                    rol: "vendedor"
-                }
-            ];
-
-            localStorage.setItem(
-                "tiendita_usuarios",
-                JSON.stringify(usuarios)
-            );
-        }
-
-        if (!localStorage.getItem("tiendita_productos")) {
-
-            const productos = [
-                {
-                    id: 1,
-                    nombre: "Agua Cristal 500ml",
-                    categoria: "Bebidas",
-                    costo: 0.50,
-                    precio: 1.00,
-                    stock: 5,
-                    stockMinimo: 24
-                },
-                {
-                    id: 2,
-                    nombre: "Coca-Cola 2.5L",
-                    categoria: "Bebidas",
-                    costo: 2.00,
-                    precio: 2.50,
-                    stock: 8,
-                    stockMinimo: 10
-                },
-                {
-                    id: 3,
-                    nombre: "Quesitos Diana 45g",
-                    categoria: "Snacks",
-                    costo: 0.15,
-                    precio: 0.25,
-                    stock: 12,
-                    stockMinimo: 20
-                },
-                {
-                    id: 4,
-                    nombre: "Leche Entera Salud 1L",
-                    categoria: "Bebidas",
-                    costo: 1.30,
-                    precio: 2.00,
-                    stock: 8,
-                    stockMinimo: 10
-                }
-            ];
-
-            localStorage.setItem(
-                "tiendita_productos",
-                JSON.stringify(productos)
-            );
-        }
-
-    })();
-    </script>
+  <link rel="stylesheet" href="../styles.css?v=20261122-react">
 </head>
 <body>
-  <div id="accessScreen">
-    <div class="access-card">
-      <div class="access-mark">
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9l1-5h14l1 5"/><path d="M3 9h18"/><path d="M5 9v10h14V9"/><path d="M9 19v-6h6v6"/></svg>
-      </div>
-      <h1>La Tiendita</h1>
-      <p class="access-sub">Sistema de inventario, compras y ventas</p>
-      <div id="mensajeError" aria-live="polite"></div>
-      <form id="formLogin" novalidate>
-        <div class="field">
-          <label for="email">Correo electrónico</label>
-          <input type="email" id="email" placeholder="Ingrese su correo" autocomplete="username">
-          <div class="invalid-feedback"></div>
-        </div>
-        <div class="field">
-          <label for="password">Contraseña</label>
-          <input type="password" id="password" placeholder="Ingrese su contraseña" autocomplete="current-password">
-          <div class="invalid-feedback"></div>
-        </div>
-        <button type="submit" class="btn btn-accent">Ingresar</button>
-      </form>
-    </div>
-  </div>
+  <div id="login-root"></div>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
   <script src="js/auth.js"></script>
 </body>
 </html>
