@@ -42,3 +42,12 @@ https://udbedu-my.sharepoint.com/:v:/g/personal/um261449_alumno_udb_edu_sv/IQCqA
 Documento:
 
 https://udbedu-my.sharepoint.com/:b:/g/personal/um261449_alumno_udb_edu_sv/IQDXtIncN8arTawnlPu9gBreAWvkhCFbxuDwTt-ld00zfkM?e=H4dhBQ
+
+UPDATE TERCERA ETAPA [FINAL]: Buen dia Ingeniero!
+
+Adjuntamos los enlaces para los recursos de esta tercera etapa:
+
+Video explicativo:
+
+
+Documento: https://udbedu-my.sharepoint.com/:b:/g/personal/um261449_alumno_udb_edu_sv/IQCY1sEe1qDnToAOaLf5mEFIAS4_mMWMqwSBYM2eo-kvZ_8?e=UXj6W9
