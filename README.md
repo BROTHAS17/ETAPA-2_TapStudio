@@ -49,5 +49,7 @@ Adjuntamos los enlaces para los recursos de esta tercera etapa:
 
 Video explicativo:
 
+https://udbedu-my.sharepoint.com/:v:/g/personal/um261449_alumno_udb_edu_sv/IQAVzckqjV1cTISotybSaKVPAeMZcml9btMpyod-W2kv6JQ?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=a20wez
+
 
 Documento: https://udbedu-my.sharepoint.com/:b:/g/personal/um261449_alumno_udb_edu_sv/IQCY1sEe1qDnToAOaLf5mEFIAS4_mMWMqwSBYM2eo-kvZ_8?e=UXj6W9
